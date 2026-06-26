@@ -22,7 +22,7 @@ st.sidebar.markdown("---")
 
 page = st.sidebar.radio(
     "Select Page:",
-    ["Home/About", "Text Analyzer", "Data Explorer", "Visualizations", "Model Info"]
+    ["Home/About", "Text Analyzer", "Dataset Explorer", "Visualizations", "Model Info"]
 )
 
 st.sidebar.markdown("---")
@@ -59,7 +59,7 @@ if page == "Home/About":
         
         st.markdown("Key Features Implemented:")
         st.markdown("- **Real-Time Input Prediction:** Instant sentiment inference from custom text snippets.")
-        st.markdown("- **Data Explorer Dashboard:** Transparent inspection of the trained dataset distribution.")
+        st.markdown("- **Dataset Explorer Dashboard:** Transparent inspection of the trained dataset distribution.")
         st.markdown("- **Advanced Visualizations:** Insightful analytical graphs including word clouds and confusion matrices.")
         st.markdown("- **Model Evaluation:** Detailed performance metrics comparison between optimized algorithms.")
 
@@ -67,7 +67,7 @@ if page == "Home/About":
         st.subheader("Application Guide")
         st.info(
             "1. **Analyze Text:** Go to **Text Analyzer** to type or paste any tweet, comment, or headline.\n"
-            "2. **Explore Data:** Go to **Data Explorer** to view rows and structural stats of our dataset.\n"
+            "2. **Explore Data:** Go to **Dataset Explorer** to view rows and structural stats of our dataset.\n"
             "3. **View Metrics:** Check **Visualizations** and **Model Info** to inspect the algorithmic performance analytics."
         )
         
