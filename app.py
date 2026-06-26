@@ -128,77 +128,98 @@ elif page == "Text Analyzer":
             st.info("Keywords Detected: `potong` (cut), `menyusahkan` (burdening), `minyak` (fuel), `rakyat` (citizens)")
 
 
-# PAGE 3 : DATASET EXPLORER
-elif page == "Dataset Explorer":
-    st.title("Dataset Explorer")
+# ---- PAGE 3 : DATASET EXPLORER ----
+elif page == "Dataset Explorer":  # Correction du nom pour coller à ta sidebar !
+    st.title("📊 Dataset Explorer")
     st.write("Explore the curated dataset used to train and evaluate our sentiment analysis models.")
     st.markdown("---")
     
-    try:
-        # 1. Chargement du vrai fichier d'Uwais
-        @st.cache_data # Évite de recharger le fichier lourd à chaque interaction
-        def load_data():
-            df = pd.read_csv("data/malaysian_sentiment_labeled.csv")
-            return df
-        
-        df = load_data()
-        
-        # 2. Section des indicateurs clés (KPIs)
-        st.subheader("Dataset Summary")
-        kpi_col1, kpi_col2, kpi_col3 = st.columns(3)
-        with kpi_col1:
-            st.metric(label="Total Data Rows", value=f"{len(df):,}")
-        with kpi_col2:
-            pos_count = len(df[df['sentiment'].str.lower() == 'positive'])
-            st.metric(label="Positive Comments", value=f"{pos_count:,}")
-        with kpi_col3:
-            neg_count = len(df[df['sentiment'].str.lower() == 'negative'])
-            st.metric(label="Negative Comments", value=f"{neg_count:,}")
+    import os
+    file_path = "data/malaysian_sentiment_labeled.csv"
+    
+    # 1. Vérification sécurisée de l'existence du fichier
+    if os.path.exists(file_path):
+        try:
+            @st.cache_data
+            def load_data():
+                return pd.read_csv(file_path)
             
-        st.markdown("---")
-        
-        # 3. Filtres interactifs pour le professeur
-        st.subheader("Filter & Search Engine")
-        
-        filter_col1, filter_col2 = st.columns(2)
-        with filter_col1:
-            selected_sentiment = st.multiselect(
-                "Filter by Sentiment Category:",
-                options=df['sentiment'].unique(),
-                default=df['sentiment'].unique()
-            )
-        with filter_col2:
-            selected_source = st.multiselect(
-                "Filter by Source Type:",
-                options=df['source'].unique(),
-                default=df['source'].unique()
-            )
+            df = load_data()
             
-        # Recherche globale par mot-clé
-        search_query = st.text_input("Search inside comments (e.g., 'RON95', 'tax', 'subsidy'):")
-        
-        # Application des filtres au DataFrame
-        df_filtered = df[
-            (df['sentiment'].isin(selected_sentiment)) & 
-            (df['source'].isin(selected_source))
-        ]
-        
-        if search_query:
-            df_filtered = df_filtered[df_filtered['body'].str.contains(search_query, case=False, na=False)]
-        
-        st.markdown("---")
-        
-        # 4. Affichage du tableau de données interactif
-        st.subheader("Interactive Data Table")
-        st.dataframe(
-            df_filtered[['body', 'sentiment', 'source', 'topic', 'score']], 
-            use_container_width=True,
-            height=400
-        )
-        st.caption(f"Showing {len(df_filtered)} out of {len(df)} entries based on your active filters.")
+            # 2. Section des indicateurs clés (KPIs)
+            st.subheader("Dataset Summary")
+            kpi_col1, kpi_col2, kpi_col3 = st.columns(3)
+            with kpi_col1:
+                st.metric(label="Total Data Rows", value=f"{len(df):,}")
+            with kpi_col2:
+                pos_count = len(df[df['sentiment'].str.lower() == 'positive'])
+                st.metric(label="Positive Comments", value=f"{pos_count:,}")
+            with kpi_col3:
+                neg_count = len(df[df['sentiment'].str.lower() == 'negative'])
+                st.metric(label="Negative Comments", value=f"{neg_count:,}")
+                
+            st.markdown("---")
+            
+            # 3. Filtres interactifs épurés (vides au départ, mais n'bloquent pas l'affichage)
+            st.subheader("Filter & Search Engine")
+            filter_col1, filter_col2 = st.columns(2)
+            
+            with filter_col1:
+                selected_sentiment = st.multiselect(
+                    "Filter by Sentiment Category:",
+                    options=df['sentiment'].unique(),
+                    placeholder="All sentiments shown"  # Plus propre que de tout pré-remplir
+                )
+            with filter_col2:
+                selected_source = st.multiselect(
+                    "Filter by Source Type:",
+                    options=df['source'].unique(),
+                    placeholder="All sources shown"
+                )
+                
+            search_query = st.text_input("Search inside comments (e.g., 'RON95', 'tax'):")
+            
+            # Application logique des filtres (si vide = on garde tout)
+            df_filtered = df.copy()
+            if selected_sentiment:
+                df_filtered = df_filtered[df_filtered['sentiment'].isin(selected_sentiment)]
+            if selected_source:
+                df_filtered = df_filtered[df_filtered['source'].isin(selected_source)]
+            if search_query:
+                df_filtered = df_filtered[df_filtered['body'].str.contains(search_query, case=False, na=False)]
+            
+            st.markdown("---")
+            
+            # 4. Affichage du tableau de données interactif
+            st.subheader("Interactive Data Table")
+            st.dataframe(
+                df_filtered[['body', 'sentiment', 'source', 'topic', 'score']], 
+                use_container_width=True,
+                height=400
+            )
+            st.caption(f"Showing {len(df_filtered)} out of {len(df)} entries.")
 
-    except FileNotFoundError:
-        st.error("Error: `malaysian_sentiment_labeled.csv` not found in the directory.")
+        except Exception as e:
+            st.error(f"Error loading CSV file: {e}")
+            
+    else:
+        # En attente du push d'Uwais sur GitHub
+        st.warning("**Waiting for Uwais' Dataset...**")
+        st.info(f"The application is looking for the file at `{file_path}`. Once pushed to GitHub, this page will unlock automatically.")
+        
+        st.markdown("### Preview of expected structure:")
+        mock_data = pd.DataFrame({
+            "body": [
+                "Targeted subsidy is good for B40, support gomen!", 
+                "Minyak naik lagi lah aduh pening kepala macam ni.",
+                "Nothing special. subsidi bersasar RON95. Bring your IC."
+            ],
+            "source": ["comment", "comment", "comment"],
+            "topic": ["fuel_subsidy", "fuel_subsidy", "fuel_subsidy"],
+            "score": [1, 1, 1],
+            "sentiment": ["positive", "negative", "neutral"]
+        })
+        st.dataframe(mock_data, use_container_width=True)
 
 # PAGE 4 : VISUALIZATIONS
 
