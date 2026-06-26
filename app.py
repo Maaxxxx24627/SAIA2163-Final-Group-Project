@@ -16,7 +16,7 @@ st.set_page_config(
 # 2. SIDEBAR NAVIGATION
 
 st.sidebar.markdown("# MY SAIA 2163")
-st.sidebar.markdown("### Final Project Showcase")
+st.sidebar.markdown("Final Project Showcase")
 st.sidebar.markdown("---")
 
 page = st.sidebar.radio(
@@ -37,7 +37,7 @@ st.sidebar.caption("June 2026")
 
 if page == "Home/About":
     st.title("Malaysian Fuel Subsidy Sentiment Analyzer")
-    st.markdown("### Analyzing Public Response to Socioeconomic Policy Shifts")
+    st.markdown("Analyzing Public Response to Socioeconomic Policy Shifts")
     st.markdown("---")
     
     col_intro, col_guide = st.columns([2, 1])
@@ -56,7 +56,7 @@ if page == "Home/About":
             "the ongoing financial policies."
         )
         
-        st.markdown("#### Key Features Implemented:")
+        st.markdown("Key Features Implemented:")
         st.markdown("- **Real-Time Input Prediction:** Instant sentiment inference from custom text snippets.")
         st.markdown("- **Data Explorer Dashboard:** Transparent inspection of the trained dataset distribution.")
         st.markdown("- **Advanced Visualizations:** Insightful analytical graphs including word clouds and confusion matrices.")
@@ -103,7 +103,7 @@ elif page == "Text Analyzer":
             st.warning("Please enter some text before clicking the analyze button!")
         else:
             # PLACEHOLDER NOTIFICATION
-            st.info("⏳ Communicating with the NLP backend... (Running in Mock-up Deployment Mode)")
+            st.info("Communicating with the NLP backend... (Running in Mock-up Deployment Mode)")
             st.markdown("---")
             
             # --- SIMULATION VISUALS (To be replaced with Uwais's model.predict() output) ---
@@ -113,7 +113,7 @@ elif page == "Text Analyzer":
             with res_col1:
                 st.subheader("Predicted Class")
                 # Visual styling block for text outcome
-                st.markdown("### **Negative / Angry **")
+                st.markdown("**Negative / Angry **")
                 st.caption("The model identified indicators of dissatisfaction or socioeconomic concern in the text.")
                 
             with res_col2:
@@ -164,7 +164,7 @@ elif page == "Data Explorer":
     with stat_col3:
         st.metric(label="Missing / Null Values", value="0")
         
-    st.markdown("### Sample Rows Preview")
+    st.markdown("Sample Rows Preview")
     st.dataframe(mock_data, use_container_width=True)
 
 
