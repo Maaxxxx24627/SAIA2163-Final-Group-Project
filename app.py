@@ -128,45 +128,74 @@ elif page == "Text Analyzer":
             st.info("Keywords Detected: `potong` (cut), `menyusahkan` (burdening), `minyak` (fuel), `rakyat` (citizens)")
 
 
-# PAGE 3 : DATA EXPLORER
-
-elif page == "Data Explorer":
+# PAGE 3 : DATASET EXPLORER 
+elif page == "Dataset Explorer":
     st.title("Dataset Explorer")
-    st.write("A deep dive layout into the raw samples collected for training and verification.")
+    st.write("Explore the curated dataset used to train and evaluate our sentiment analysis models.")
     st.markdown("---")
     
-    st.warning("[Waiting for Uwais's processed CSV file]. Below is a sample preview of the expected DataFrame structure:")
-    
-    # Mock data structure to display data-table rendering capabilities
-    mock_data = pd.DataFrame({
-        'Text / Social Media Post': [
-            "Subsidy petrol kena cut down pulak dah pening kepala camni", 
-            "Good move by gomen to target the rich. Highly targeted approach.", 
-            "Penat la macam ni semua barang naik harga nanti.",
-            "Explain clearly how target subsidy works. Communication is poor.",
-            "Rakyat bersyukur subsidy dikurangkan secara adil."
-        ],
-        'Cleaned_Tokens': [
-            "['subsidy', 'petrol', 'cut', 'pening', 'kepala']",
-            "['good', 'move', 'gomen', 'target', 'rich', 'targeted']",
-            "['penat', 'barang', 'naik', 'harga']",
-            "['explain', 'clearly', 'target', 'subsidy', 'communication', 'poor']",
-            "['rakyat', 'bersyukur', 'subsidy', 'kurang', 'adil']"
-        ],
-        'Assigned Sentiment Label': ["Negative", "Positive", "Negative", "Neutral", "Positive"]
-    })
-    
-    # Statistical Summary metrics placeholder
-    stat_col1, stat_col2, stat_col3 = st.columns(3)
-    with stat_col1:
-        st.metric(label="Total Text Samples Available", value="1,240 rows")
-    with stat_col2:
-        st.metric(label="Feature Space Dimension", value="V=3,412 words")
-    with stat_col3:
-        st.metric(label="Missing / Null Values", value="0")
+    try:
+        @st.cache_data
+        def load_data():
+            df = pd.read_csv("malaysian_sentiment_labeled.csv")
+            return df
         
-    st.markdown("Sample Rows Preview")
-    st.dataframe(mock_data, use_container_width=True)
+        df = load_data()
+        
+        # 2. Section des indicateurs clés (KPIs)
+        st.subheader("Dataset Summary")
+        kpi_col1, kpi_col2, kpi_col3 = st.columns(3)
+        with kpi_col1:
+            st.metric(label="Total Data Rows", value=f"{len(df):,}")
+        with kpi_col2:
+            pos_count = len(df[df['sentiment'].str.lower() == 'positive'])
+            st.metric(label="Positive Comments", value=f"{pos_count:,}")
+        with kpi_col3:
+            neg_count = len(df[df['sentiment'].str.lower() == 'negative'])
+            st.metric(label="Negative Comments", value=f"{neg_count:,}")
+            
+        st.markdown("---")
+        
+        # 3. Interactive Filtering & Search Engine
+        st.subheader("Filter & Search Engine")
+        
+        filter_col1, filter_col2 = st.columns(2)
+        with filter_col1:
+            selected_sentiment = st.multiselect(
+                "Filter by Sentiment Category:",
+                options=df['sentiment'].unique(),
+                default=df['sentiment'].unique()
+            )
+        with filter_col2:
+            selected_source = st.multiselect(
+                "Filter by Source Type:",
+                options=df['source'].unique(),
+                default=df['source'].unique()
+            )
+            
+        search_query = st.text_input("Search inside comments (e.g., 'RON95', 'tax', 'subsidy'):")
+        
+        df_filtered = df[
+            (df['sentiment'].isin(selected_sentiment)) & 
+            (df['source'].isin(selected_source))
+        ]
+        
+        if search_query:
+            df_filtered = df_filtered[df_filtered['body'].str.contains(search_query, case=False, na=False)]
+        
+        st.markdown("---")
+        
+        # Display Filtered Data Table
+        st.subheader("Interactive Data Table")
+        st.dataframe(
+            df_filtered[['body', 'sentiment', 'source', 'topic', 'score']], 
+            use_container_width=True,
+            height=400
+        )
+        st.caption(f"Showing {len(df_filtered)} out of {len(df)} entries based on your active filters.")
+
+    except FileNotFoundError:
+        st.error("Error: `malaysian_sentiment_labeled.csv` not found in the directory.")
 
 
 # PAGE 4 : VISUALIZATIONS
