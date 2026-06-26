@@ -63,7 +63,7 @@ if page == "Home/About":
         st.markdown("- **Model Evaluation:** Detailed performance metrics comparison between optimized algorithms.")
 
     with col_guide:
-        st.subheader("💡 Application Guide")
+        st.subheader("Application Guide")
         st.info(
             "1. **Analyze Text:** Go to **Text Analyzer** to type or paste any tweet, comment, or headline.\n"
             "2. **Explore Data:** Go to **Data Explorer** to view rows and structural stats of our dataset.\n"
