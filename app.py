@@ -22,7 +22,8 @@ st.sidebar.markdown("---")
 
 page = st.sidebar.radio(
     "Select Page:",
-    ["Home/About", "Text Analyzer", "Dataset Explorer", "Visualizations", "Model Info"]
+    ["Home/About", "Text Analy", "Dataset Explorer", "Visualizas", "Model Io"]
+    #["Home/About", "Text Analyzer", "Dataset Explorer", "Visualizations", "Model Info"]
 )
 
 st.sidebar.markdown("---")
