@@ -148,13 +148,16 @@ elif page == "Dataset Explorer":  # Correction du nom pour coller à ta sidebar 
             
             # 2. Section des indicateurs clés (KPIs)
             st.subheader("Dataset Summary")
-            kpi_col1, kpi_col2, kpi_col3 = st.columns(3)
+            kpi_col1, kpi_col2, kpi_col3, kpi_col4 = st.columns(4)
             with kpi_col1:
                 st.metric(label="Total Data Rows", value=f"{len(df):,}")
             with kpi_col2:
                 pos_count = len(df[df['sentiment'].str.lower() == 'positive'])
                 st.metric(label="Positive Comments", value=f"{pos_count:,}")
             with kpi_col3:
+                neu_count = len(df[df['sentiment'].str.lower() == 'neutral'])
+                st.metric(label="Neutral Comments", value=f"{neu_count:,}")
+            with kpi_col4:
                 neg_count = len(df[df['sentiment'].str.lower() == 'negative'])
                 st.metric(label="Negative Comments", value=f"{neg_count:,}")
                 
