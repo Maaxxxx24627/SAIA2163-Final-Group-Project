@@ -129,7 +129,7 @@ elif page == "Text Analyzer":
 
 
 # ---- PAGE 3 : DATASET EXPLORER ----
-elif page == "Dataset Explorer":  # Correction du nom pour coller à ta sidebar !
+elif page == "Dataset Explorer":
     st.title("Dataset Explorer")
     st.write("Explore the curated dataset used to train and evaluate our sentiment analysis models.")
     st.markdown("---")
@@ -137,7 +137,6 @@ elif page == "Dataset Explorer":  # Correction du nom pour coller à ta sidebar 
     import os
     file_path = "data/malaysian_sentiment_labeled.csv"
     
-    # 1. Vérification sécurisée de l'existence du fichier
     if os.path.exists(file_path):
         try:
             @st.cache_data
@@ -146,7 +145,7 @@ elif page == "Dataset Explorer":  # Correction du nom pour coller à ta sidebar 
             
             df = load_data()
             
-            # 2. Section des indicateurs clés (KPIs)
+            # 2. KPI Metrics Display
             st.subheader("Dataset Summary")
             kpi_col1, kpi_col2, kpi_col3, kpi_col4 = st.columns(4)
             with kpi_col1:
@@ -163,7 +162,6 @@ elif page == "Dataset Explorer":  # Correction du nom pour coller à ta sidebar 
                 
             st.markdown("---")
             
-            # 3. Filtres interactifs épurés (vides au départ, mais n'bloquent pas l'affichage)
             st.subheader("Filter & Search Engine")
             filter_col1, filter_col2 = st.columns(2)
             
@@ -171,7 +169,7 @@ elif page == "Dataset Explorer":  # Correction du nom pour coller à ta sidebar 
                 selected_sentiment = st.multiselect(
                     "Filter by Sentiment Category:",
                     options=df['sentiment'].unique(),
-                    placeholder="All sentiments shown"  # Plus propre que de tout pré-remplir
+                    placeholder="All sentiments shown"
                 )
             with filter_col2:
                 selected_source = st.multiselect(
@@ -182,7 +180,7 @@ elif page == "Dataset Explorer":  # Correction du nom pour coller à ta sidebar 
                 
             search_query = st.text_input("Search inside comments (e.g., 'RON95', 'tax'):")
             
-            # Application logique des filtres (si vide = on garde tout)
+
             df_filtered = df.copy()
             if selected_sentiment:
                 df_filtered = df_filtered[df_filtered['sentiment'].isin(selected_sentiment)]
@@ -193,7 +191,6 @@ elif page == "Dataset Explorer":  # Correction du nom pour coller à ta sidebar 
             
             st.markdown("---")
             
-            # 4. Affichage du tableau de données interactif
             st.subheader("Interactive Data Table")
             st.dataframe(
                 df_filtered[['body', 'sentiment', 'source', 'topic', 'score']], 
@@ -206,7 +203,6 @@ elif page == "Dataset Explorer":  # Correction du nom pour coller à ta sidebar 
             st.error(f"Error loading CSV file: {e}")
             
     else:
-        # En attente du push d'Uwais sur GitHub
         st.warning("**Waiting for Uwais' Dataset...**")
         st.info(f"The application is looking for the file at `{file_path}`. Once pushed to GitHub, this page will unlock automatically.")
         
