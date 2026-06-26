@@ -138,7 +138,7 @@ elif page == "Dataset Explorer":
         # 1. Chargement du vrai fichier d'Uwais
         @st.cache_data # Évite de recharger le fichier lourd à chaque interaction
         def load_data():
-            df = pd.read_csv("malaysian_sentiment_labeled.csv")
+            df = pd.read_csv("data/malaysian_sentiment_labeled.csv")
             return df
         
         df = load_data()
