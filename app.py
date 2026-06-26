@@ -130,7 +130,7 @@ elif page == "Text Analyzer":
 
 # ---- PAGE 3 : DATASET EXPLORER ----
 elif page == "Dataset Explorer":  # Correction du nom pour coller à ta sidebar !
-    st.title("📊 Dataset Explorer")
+    st.title("Dataset Explorer")
     st.write("Explore the curated dataset used to train and evaluate our sentiment analysis models.")
     st.markdown("---")
     
