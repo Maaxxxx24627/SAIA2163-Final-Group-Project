@@ -137,7 +137,7 @@ elif page == "Dataset Explorer":
     try:
         @st.cache_data
         def load_data():
-            df = pd.read_csv("malaysian_sentiment_labeled.csv")
+            df = pd.read_csv("data/malaysian_sentiment_labeled.csv")
             return df
         
         df = load_data()
