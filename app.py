@@ -132,10 +132,10 @@ elif page == "Text Analyzer":
     st.write("💡 **Quick Examples (Click to test):**")
     col_ex1, col_ex2 = st.columns(2)
     with col_ex1:
-        if st.button("📌 Example A (Negative Expression)"):
+        if st.button("Example A (Negative Expression)"):
             st.session_state.input_text = "Minyak naik lagi lah aduh pening kepala macam ni. Gomen cuts subsidy burdening rakyat!"
     with col_ex2:
-        if st.button("📌 Example B (Neutral Expression)"):
+        if st.button("Example B (Neutral Expression)"):
             st.session_state.input_text = "Targeted subsidy RON95 will start soon. Please bring your IC to register at the station."
 
     # 4. Zone de saisie
@@ -179,7 +179,7 @@ elif page == "Text Analyzer":
             res_col1, res_col2 = res_col1, res_col2 = st.columns(2)
             
             with res_col1:
-                st.subheader("🎯 Predicted Sentiment")
+                st.subheader("Predicted Sentiment")
                 
                 # Changement dynamique de la couleur du badge selon le label retourné par le pkl
                 if "POS" in prediction_label:
