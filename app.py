@@ -114,9 +114,12 @@ elif page == "Text Analyzer":
     try:
         @st.cache_resource
         def load_nlp_models():
-            with open(f"{base}/rakyat_speaks_ml_LogReg_TFIDF_FINAL_BEST.pkl", "rb") as f:
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+            model_path = os.path.join(base_dir, "models", "final_best", "rakyat_speaks_ml_LogReg_TFIDF_FINAL_BEST.pkl")
+            vec_path   = os.path.join(base_dir, "models", "final_best", "rakyat_speaks_ml_LogReg_TFIDF_FINAL_BEST_vectorizer.pkl")
+            with open(model_path, "rb") as f:
                 model = pickle.load(f)
-            with open(f"{base}/rakyat_speaks_ml_LogReg_TFIDF_FINAL_BEST_vectorizer.pkl", "rb") as f:
+            with open(vec_path, "rb") as f:
                 vectorizer = pickle.load(f)
             return vectorizer, model
         
