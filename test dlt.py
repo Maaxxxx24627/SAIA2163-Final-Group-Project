@@ -1,6 +1,5 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-from wordcloud import WordCloud
 from collections import Counter
 import re
 
@@ -106,34 +105,28 @@ stop_words = set([
     'tak', 'tapi', 'kalau', 'bila', 'saya', 'kami', 'mereka', 'semua',
 ])
 
-def generate_wordcloud(sentiment, color, filename):
-    subset = df[df['sentiment'] == sentiment]['cleaned']
-    words = []
-    for text in subset:
-        tokens = [w for w in text.split() if w not in stop_words and len(w) > 2]
-        words.extend(tokens)
-    
-    freq = Counter(words)
-    
-    wc = WordCloud(
-        width=1000, height=500,
-        background_color='white',
-        colormap=color,
-        max_words=120,
-        collocations=False,
-        min_font_size=10
-    ).generate_from_frequencies(freq)
-    
-    fig, ax = plt.subplots(figsize=(12, 6))
-    ax.imshow(wc, interpolation='bilinear')
-    ax.axis('off')
-    ax.set_title(f'Most Frequent Tokens — {sentiment.capitalize()} Class',
-                 fontsize=14, fontweight='bold', pad=15)
-    plt.tight_layout()
-    plt.savefig(f'notebooks/wordcloud_{sentiment}.png', dpi=150, bbox_inches='tight')
-    plt.show()
-    print(f'Saved wordcloud_{sentiment}.png — top words: {[w for w,_ in freq.most_common(5)]}')
+all_words = []
+for text in df['cleaned']:
+    tokens = [w for w in text.split() if w not in stop_words and len(w) > 2]
+    all_words.extend(tokens)
 
-generate_wordcloud('negative', 'Reds',   'negative')
-generate_wordcloud('neutral',  'Blues',  'neutral')
-generate_wordcloud('positive', 'Greens', 'positive')
+word_freq = Counter(all_words)
+top20 = word_freq.most_common(20)
+words, freqs = zip(*top20)
+
+fig, ax = plt.subplots(figsize=(11, 7))
+colors = plt.cm.RdYlBu_r([i/20 for i in range(20)])
+bars = ax.barh(list(words)[::-1], list(freqs)[::-1], color=colors[::-1], edgecolor='white')
+
+for bar, val in zip(bars, list(freqs)[::-1]):
+    ax.text(bar.get_width() + 15, bar.get_y() + bar.get_height()/2,
+            str(val), va='center', fontsize=9, fontweight='bold')
+
+ax.set_title('Top 20 Most Common Words (Stopwords Filtered)',
+             fontsize=14, fontweight='bold', pad=15)
+ax.set_xlabel('Frequency')
+ax.set_xlim(0, max(freqs) * 1.12)
+plt.tight_layout()
+plt.savefig('notebooks/top20_words.png', dpi=150, bbox_inches='tight')
+plt.show()
+print(f'Top 5: {[w for w,_ in top20[:5]]}')
