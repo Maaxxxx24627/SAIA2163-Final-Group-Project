@@ -299,9 +299,6 @@ elif page == "Visualizations":
     st.write("Exploratory visualizations highlighting data characteristics, vocabulary trends, and baseline evaluation performance.")
     st.markdown("---")
     
-    import os
-    import pickle
-
     st.subheader("1. Model Performance: Confusion Matrix")
     st.write(
         "The matrix below adapts dynamically to showcase the true labels versus predictions for your "
