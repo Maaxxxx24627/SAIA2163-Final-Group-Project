@@ -1,31 +1,39 @@
 # Models
 
-This folder contains two sets of classical ML sentiment classification models.
+This folder contains two sets of classical ML sentiment classification models,
+plus transformer-based models in the `transformers/` subdirectory.
 
-## final_best/
+> **Note:** The `classical_ml/` folder contains the best-performing **classical
+> machine learning models** specifically. It is **not** the overall best model
+> for the project. The overall best model project-wide is the fine-tuned
+> XLM-RoBERTa transformer ensemble, which is documented separately in the
+> `transformers/` section below and is not stored in this repository (it is
+> loaded from Hugging Face Hub or local checkpoint).
+
+## classical_ml/
 
 These are the three models to use. They are the best-performing baseline models,
 evaluated against a 402-row human-labeled gold test set.
 
-- rakyat_speaks_ml_NB_TFIDF_FINAL_BEST.pkl
+- naive_bayes_tfidf.pkl
   Naive Bayes with TF-IDF features. Accuracy 64.2 percent, Cohen's Kappa 0.373.
-  Use with rakyat_speaks_ml_NB_TFIDF_FINAL_BEST_vectorizer.pkl.
+  Use with naive_bayes_tfidf_vectorizer.pkl.
 
-- rakyat_speaks_ml_SVM_BoW_FINAL_BEST.pkl
+- svm_bow.pkl
   Support Vector Machine with Bag of Words features. Accuracy 68.4 percent,
   Cohen's Kappa 0.366. Highest accuracy of the three models.
-  Use with rakyat_speaks_ml_SVM_BoW_FINAL_BEST_vectorizer.pkl.
+  Use with svm_bow_vectorizer.pkl.
 
-- rakyat_speaks_ml_LogReg_TFIDF_FINAL_BEST.pkl
+- logistic_regression_tfidf.pkl
   Logistic Regression with TF-IDF features. Accuracy 66.9 percent,
   Cohen's Kappa 0.365. Most balanced performance across classes.
-  Use with rakyat_speaks_ml_LogReg_TFIDF_FINAL_BEST_vectorizer.pkl.
+  Use with logistic_regression_tfidf_vectorizer.pkl.
 
 Each model must be loaded together with its matching vectorizer file. Do not mix
 a model with a vectorizer from a different model, since vocabulary and feature
 settings differ between them.
 
-## experiments_tuned_underperformed/
+## classical_ml_tuned_experiments/
 
 These are hyperparameter-tuned versions of the same three models, produced using
 GridSearchCV with cross-validation on the training data. They are kept only as
@@ -80,4 +88,4 @@ fine-tuning over generic pretrained sentiment models for this task.
 See results/model_results.csv for the complete comparison table across all eight
 model and configuration combinations, including the five baseline combinations
 and the three tuned combinations, with a status column indicating which models
-are final_best, baseline_not_selected, or tuned_underperformed.
+are classical_ml, baseline_not_selected, or tuned_underperformed.
