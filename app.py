@@ -290,34 +290,55 @@ elif page == "Dataset Explorer":
         st.dataframe(mock_data, use_container_width=True)
 
 
-# PAGE 4 : VISUALIZATIONS    waiting zarif plots
+
+# PAGE 4 : VISUALIZATIONS (VERSION DYNAMIQUE)
 
 elif page == "Visualizations":
-    st.title("Data Insights & Analytical Charts")
+    st.title("📊 Data Insights & Analytical Charts")
     st.write("Exploratory visualizations highlighting data characteristics, vocabulary trends, and baseline evaluation performance.")
     st.markdown("---")
     
     import os
 
-    st.subheader("1. Model Performance: Confusion Matrices")
+    st.subheader("🔬 1. Model Performance: Confusion Matrix")
     st.write(
-        "The grid below charts true labels versus predictions across all four evaluated configurations. "
-        "This allows direct localization of error vectors and misclassified sentiments:"
+        "The matrix below adapts dynamically to showcase the true labels versus predictions for your "
+        "currently selected model architecture in the sidebar. This allows direct localization of error vectors:"
     )
 
-    possible_paths = ["confusion_matrices.png", "notebooks/confusion_matrices.png", "confusion_matrices.png"]
-    image_found = False
+    
+    if model_choice == "Logistic Regression Baseline" and vectorizer_choice == "Bag of Words (BoW)":
+        cm_filename = "cm_logistic_bow.png"
+        cm_caption = "Confusion Matrix: Logistic Regression + Bag of Words"
+    elif model_choice == "Logistic Regression Baseline" and vectorizer_choice == "TF-IDF Vectorizer":
+        cm_filename = "cm_logistic_tfidf.png"
+        cm_caption = "Confusion Matrix: Logistic Regression + TF-IDF"
+    elif model_choice == "Naive Bayes Classifier" and vectorizer_choice == "Bag of Words (BoW)":
+        cm_filename = "cm_nb_bow.png"
+        cm_caption = "Confusion Matrix: Naive Bayes + Bag of Words"
+    else:
+        cm_filename = "cm_nb_tfidf.png"
+        cm_caption = "Confusion Matrix: Naive Bayes + TF-IDF"
 
-    for path in possible_paths:
+    cm_possible_paths = [cm_filename, f"notebooks/{cm_filename}", f"models/{cm_filename}"]
+    cm_image_found = False
+
+    for path in cm_possible_paths:
         if os.path.exists(path):
-            st.image(path, caption="Comprehensive Confusion Matrix Breakdown (Naive Bayes vs Logistic Regression)", use_container_width=True)
-            image_found = True
+            st.image(path, caption=cm_caption, use_container_width=True)
+            cm_image_found = True
             break
 
-    if not image_found:
-        st.warning("**Confusion matrix chart (`confusion_matrices.png`) not found yet.**")
-        st.info("Please make sure Zarif's generated plot file is saved or pushed into your repository root as `confusion_matrices.png`.")
-        st.image("https://via.placeholder.com/1000x600.png?text=Placeholder:+Confusion+Matrix+Grid+Plot", use_container_width=True)
+    if not cm_image_found:
+        st.info(f"💡 *Dynamic Mode Note:* Looking for single matrix file `{cm_filename}`.")
+        
+        global_path = "confusion_matrices.png"
+        if os.path.exists(global_path) or os.path.exists(f"notebooks/{global_path}"):
+            actual_path = global_path if os.path.exists(global_path) else f"notebooks/{global_path}"
+            st.image(actual_path, caption="Static view (All models combined)", use_container_width=True)
+        else:
+            st.warning("**No confusion matrix image found.**")
+            st.image("https://via.placeholder.com/1000x500.png?text=Waiting+for+Zarif+to+push+individual+matrix+images", use_container_width=True)
 
     st.markdown("---")
     
@@ -332,17 +353,37 @@ elif page == "Visualizations":
             "Neutral/Informative discussions represent the vast majority, while highly polarized positive feedback "
             "remains a minority class (287 rows)."
         )
+        
+        dist_paths = ["distribution.png", "notebooks/distribution.png"]
+        dist_found = False
+        for p in dist_paths:
+            if os.path.exists(p):
+                st.image(p, caption="Imbalanced Class Distribution (RON95 Dataset)", use_container_width=True)
+                dist_found = True
+                break
+        if not dist_found:
+            st.image("https://via.placeholder.com/500x350.png?text=Placeholder:+Distribution+Chart", use_container_width=True)
+            
         st.info("*Insight for presentation:* Class imbalance naturally lowers the global Positive F1-score to ~0.38 across all models.")
         
     with vis_col2:
         st.markdown("**Word Cloud & Vocabulary Weighting**")
         st.write(
             "Prominent lexical tokens detected in complaints heavily center around financial pressure terms "
-            "like `potong` (cut), `menyusahkan` (burdening), and `harga` (price). Factual records focus on structural keywords "
-            "like `ic`, `payslip`, and `register`."
+            "like `potong` (cut), `menyusahkan` (burdening), and `harga` (price). Factual records focus on structural keywords."
         )
+        
+        wc_paths = ["wordcloud.png", "notebooks/wordcloud.png"]
+        wc_found = False
+        for p in wc_paths:
+            if os.path.exists(p):
+                st.image(p, caption="Most Frequent Tokens (Stop-words Filtered)", use_container_width=True)
+                wc_found = True
+                break
+        if not wc_found:
+            st.image("https://via.placeholder.com/500x350.png?text=Placeholder:+Word+Cloud+Image", use_container_width=True)
+            
         st.caption("Text pre-processing accurately filtered out regional stop-words (`la`, `je`, `gomen`) to extract root semantics.")
-
 # PAGE 5 : MODEL INFO
 
 elif page == "Model Info":
