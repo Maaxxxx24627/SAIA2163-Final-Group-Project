@@ -294,39 +294,59 @@ elif page == "Dataset Explorer":
         })
         st.dataframe(mock_data, use_container_width=True)
 
+# ==============================================================================
 # PAGE 4 : VISUALIZATIONS
-
+# ==============================================================================
 elif page == "Visualizations":
     st.title("Data Insights & Analytical Charts")
-    st.write("Exploratory visualizations highlighting data characteristics and evaluation performance.")
+    st.write("Exploratory visualizations highlighting data characteristics, vocabulary trends, and baseline evaluation performance.")
     st.markdown("---")
     
-    st.info("[Waiting for Zarif's Charts]. The layout placeholders below are prepared for instant Matplotlib/Seaborn/Plotly embedding.")
-    
-    vis_row1_col1, vis_row1_col2 = st.columns(2)
-    with vis_row1_col1:
-        st.subheader("1. Word Cloud Display")
-        st.write("(Visual representation of most prominent terms in positive vs negative discussions)")
-        st.image("https://via.placeholder.com/500x300.png?text=Placeholder:+Zarif's+WordCloud", use_container_width=True)
-        
-    with vis_row1_col2:
-        st.subheader("2. Sentiment Class Distribution")
-        st.write("(Bar/Pie representation showing balance ratios between classes)")
-        st.image("https://via.placeholder.com/500x300.png?text=Placeholder:+Sentiment+Distribution+Chart", use_container_width=True)
-        
-    st.markdown("---")
-    
-    vis_row2_col1, vis_row2_col2 = st.columns(2)
-    with vis_row2_col1:
-        st.subheader("3. Confusion Matrix Heatmap")
-        st.write("(Grid charting true labels versus predictions to locate error vectors)")
-        st.image("https://via.placeholder.com/500x300.png?text=Placeholder:+Confusion+Matrix+Heatmap", use_container_width=True)
-        
-    with vis_row2_col2:
-        st.subheader("4. Top 20 Most Common Words Chart")
-        st.write("(Frequency count charts illustrating heavy vocabulary tokens)")
-        st.image("https://via.placeholder.com/500x300.png?text=Placeholder:+Top+20+Words+Frequency+Plot", use_container_width=True)
+    import os
 
+    st.subheader("1. Model Performance: Confusion Matrices")
+    st.write(
+        "The grid below charts true labels versus predictions across all four evaluated configurations. "
+        "This allows direct localization of error vectors and misclassified sentiments:"
+    )
+
+    possible_paths = ["confusion_matrices.png", "notebooks/confusion_matrices.png", "confusion_matrices.png"]
+    image_found = False
+
+    for path in possible_paths:
+        if os.path.exists(path):
+            st.image(path, caption="Comprehensive Confusion Matrix Breakdown (Naive Bayes vs Logistic Regression)", use_container_width=True)
+            image_found = True
+            break
+
+    if not image_found:
+        st.warning("**Confusion matrix chart (`confusion_matrices.png`) not found yet.**")
+        st.info("Please make sure Zarif's generated plot file is saved or pushed into your repository root as `confusion_matrices.png`.")
+        st.image("https://via.placeholder.com/1000x600.png?text=Placeholder:+Confusion+Matrix+Grid+Plot", use_container_width=True)
+
+    st.markdown("---")
+    
+    st.subheader("2. Corpus Characteristics & Class Distributions")
+    
+    vis_col1, vis_col2 = st.columns(2)
+    
+    with vis_col1:
+        st.markdown("**Sentiment Class Distribution**")
+        st.write(
+            "Our curated dataset (~7,383 rows) exhibits a heavy natural class skew: "
+            "Neutral/Informative discussions represent the vast majority, while highly polarized positive feedback "
+            "remains a minority class (287 rows)."
+        )
+        st.info("*Insight for presentation:* Class imbalance naturally lowers the global Positive F1-score to ~0.38 across all models.")
+        
+    with vis_col2:
+        st.markdown("**Word Cloud & Vocabulary Weighting**")
+        st.write(
+            "Prominent lexical tokens detected in complaints heavily center around financial pressure terms "
+            "like `potong` (cut), `menyusahkan` (burdening), and `harga` (price). Factual records focus on structural keywords "
+            "like `ic`, `payslip`, and `register`."
+        )
+        st.caption("Text pre-processing accurately filtered out regional stop-words (`la`, `je`, `gomen`) to extract root semantics.")
 
 # PAGE 5 : MODEL INFO
 
@@ -336,31 +356,63 @@ elif page == "Model Info":
     st.markdown("---")
     
     st.subheader("Comparative Testing Performance Grid")
-    st.write("Evaluation results gathered over the 20% or 30% testing partition split:")
+    st.write("Evaluation results gathered over the 402 gold-labeled testing split entries:")
     
-    # Data table for metric tracking
+    # Intégration des VRAIS résultats issus de votre console !
     metrics_df = pd.DataFrame({
-        'Evaluated Model Algorithm': ['Naive Bayes Classifier', 'Support Vector Machine (SVM)', 'Logistic Regression Baseline'],
-        'Feature Extraction Method': ['TF-IDF Vectorizer', 'Bag of Words (BoW)', 'TF-IDF Vectorizer'],
-        'Testing Accuracy': ['84.21%', '87.65%', '85.90%'],
-        'Precision Score': ['83.50%', '87.10%', '85.20%'],
-        'Recall Score': ['84.00%', '87.30%', '85.50%'],
-        'Calculated F1-Score': ['83.75%', '87.20%', '85.35%']
+        'Evaluated Model Algorithm': [
+            'Naive Bayes Classifier', 
+            'Naive Bayes Classifier', 
+            'Logistic Regression Baseline', 
+            'Logistic Regression Baseline'
+        ],
+        'Feature Extraction Method': [
+            'TF-IDF Vectorizer', 
+            'Bag of Words (BoW)', 
+            'TF-IDF Vectorizer', 
+            'Bag of Words (BoW)'
+        ],
+        'Testing Accuracy': ['64.2%', '61.2%', '66.9%', '67.7%'],
+        'Cohen\'s Kappa Score': ['0.373', '0.322', '0.365', '0.354'],
+        'Negative F1-Score': ['0.556', '0.543', '0.571', '0.546'],
+        'Neutral F1-Score': ['0.738', '0.701', '0.754', '0.765'],
+        'Positive F1-Score': ['0.416', '0.378', '0.381', '0.386']
     })
-    st.table(metrics_df)
+    
+    # Affichage du tableau interactif propre
+    st.dataframe(metrics_df, use_container_width=True)
     
     st.markdown("---")
-    st.subheader("Technical Pipeline Description")
     
     col_p1, col_p2 = st.columns(2)
+    
     with col_p1:
         st.markdown("**Text Preprocessing Architecture:**")
-        st.write("- Character Normalization: Lowercasing, removal of URLs, usernames, special symbols, and digits.")
-        st.write("- Tokenization: NLTK regex tokenizer applied to extract valid word chunks.")
-        st.write("- Stopwords Exclusions: Augmented stopword dictionaries handling English and regional Malay slangs (`la`, `je`, `gomen`).")
-        st.write("- Normalization Strategy: Word Lemmatization to extract base roots.")
+        st.write("- **Character Normalization:** Lowercasing, removal of URLs, usernames, markdown symbols, and non-ASCII characters.")
+        st.write("- **Token Cleaning:** Regex filtering to strip punctuation while preserving punctuation indicators like `!` and `?` for sentiment extraction.")
+        st.write("- **Length Threshold:** Automatic deletion of text fragments shorter than 3 tokens to minimize dataset noise.")
+        st.write("- **Feature Scope:** Extraction bounds capped at a maximum of 30,000 top n-grams (1,2) with a minimum document frequency (`min_df=2`).")
         
     with col_p2:
-        st.markdown("**Best Model Execution Details:**")
-        st.success("Best Performer Selected: **Support Vector Machine (SVM)**")
-        st.write("The linear SVM model shows superior categorization accuracy on textual data containing local expressions, exhibiting high precision across heavily polarized statements.")
+        st.markdown("**Best Performer Evaluation:**")
+        st.success("Best Overall Model: **Logistic Regression + BoW** (67.7% Acc)")
+        st.write(
+            "While **Logistic Regression** achieves the highest raw accuracy, all models face a massive linguistic hurdle "
+            "with the **Positive Class F1-Score (~38%)** due to the extreme dataset imbalance (only 287 positive training rows)."
+        )
+        st.info(
+            "*Soutenance Note:* We optimized training by calculating balanced sample weights (`class_weight='balanced'`) "
+            "to prevent the algorithms from completely ignoring minority positive expressions."
+        )
+
+    st.markdown("---")
+    st.subheader("Model Deployment Artifacts")
+    st.write("The current production environment is powered by the static serialization bins generated from Uwais' pipeline:")
+    
+    dep_col1, dep_col2 = st.columns(2)
+    with dep_col1:
+        st.code("models/best_model.pkl", language="text")
+        st.caption("Serialized Python object holding the trained Logistic Regression weights.")
+    with dep_col2:
+        st.code("models/tfidf_vectorizer.pkl", language="text")
+        st.caption("Vocab mapping array converting live text inputs into predictable numeric coordinates.")
