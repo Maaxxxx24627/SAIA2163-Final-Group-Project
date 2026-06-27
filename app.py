@@ -306,7 +306,20 @@ elif page == "Visualizations":
     def load_results():
         try:
             base_dir = os.path.dirname(os.path.abspath(__file__))
-            return pd.read_csv(os.path.join(base_dir, "results", "model_results.csv"))
+            df = pd.read_csv(os.path.join(base_dir, "results", "model_results.csv"))
+            df.columns = df.columns.str.strip()
+            df = df.rename(columns={
+                'Model':         'model',
+                'Status':        'status',
+                'Accuracy':      'accuracy',
+                "Cohen's Kappa": 'kappa',
+                'Negative F1':   'neg_f1',
+                'Neutral F1':    'neu_f1',
+                'Positive F1':   'pos_f1'
+            })
+            if df['accuracy'].dtype == object:
+                df['accuracy'] = df['accuracy'].str.replace('%', '').astype(float) / 100
+            return df
         except FileNotFoundError:
             return None
 
@@ -396,7 +409,7 @@ elif page == "Visualizations":
 
     if not comp_found:
         if results_df is not None:
-            final = results_df[results_df['status'] == 'final_best'].copy()
+            final = results_df[results_df['status'].isin(['final_best','classical_ml', 'ensemble_best','transformer_finetuned_best','ensemble'])].copy()
             fallback_models = final['model'].tolist()
             fallback_acc    = (final['accuracy'] * 100).tolist()
             fallback_kappa  = final['kappa'].tolist()
@@ -465,7 +478,7 @@ elif page == "Visualizations":
 
     if not f1_found:
         if results_df is not None:
-            final = results_df[results_df['status'] == 'final_best'].copy()
+            final = results_df[results_df['status'].isin(['final_best','classical_ml','ensemble_best','transformer_finetuned_best','ensemble'])].copy()
             f1_models  = final['model'].tolist()
             f1_neg     = final['neg_f1'].tolist()
             f1_neu     = final['neu_f1'].tolist()
