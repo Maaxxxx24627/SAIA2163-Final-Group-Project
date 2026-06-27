@@ -393,16 +393,30 @@ elif page == "Visualizations":
             fallback_acc    = [64.2, 65.4, 66.9]
             fallback_kappa  = [0.373, 0.358, 0.365]
 
-        fig, ax = plt.subplots(figsize=(10, 5))
+        fig, ax1 = plt.subplots(figsize=(10, 5))
+
         x = np.arange(len(fallback_models))
         width = 0.35
-        ax.bar(x - width / 2, fallback_acc,              width, label='Accuracy (%)',  color='steelblue')
-        ax.bar(x + width / 2, [k * 100 for k in fallback_kappa], width, label='Kappa × 100', color='coral')
-        ax.set_xticks(x)
-        ax.set_xticklabels(fallback_models, rotation=15)
-        ax.set_ylabel('Score')
-        ax.set_title('Model Comparison — Final Best Models')
-        ax.legend()
+
+        bars1 = ax1.bar(x - width / 2, fallback_acc, width, label='Accuracy (%)', color='steelblue')
+        ax1.set_ylabel('Accuracy (%)', color='steelblue')
+        ax1.set_ylim(0, 100)
+        ax1.tick_params(axis='y', labelcolor='steelblue')
+
+        ax2 = ax1.twinx()
+        bars2 = ax2.bar(x + width / 2, fallback_kappa, width, label="Cohen's Kappa", color='coral')
+        ax2.set_ylabel("Cohen's Kappa", color='coral')
+        ax2.set_ylim(0, 1)
+        ax2.tick_params(axis='y', labelcolor='coral')
+
+        ax1.set_xticks(x)
+        ax1.set_xticklabels(fallback_models, rotation=15)
+        ax1.set_title('Model Comparison — Final Best Models')
+
+        lines = [bars1, bars2]
+        labels = ['Accuracy (%)', "Cohen's Kappa"]
+        ax1.legend(lines, labels, loc='upper left')
+
         plt.tight_layout()
         st.pyplot(fig)
         st.caption("Generated dynamically from results/model_results.csv — add model_comparison.png to use static version.")
