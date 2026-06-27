@@ -303,7 +303,8 @@ elif page == "Visualizations":
     @st.cache_data
     def load_results():
         try:
-            return pd.read_csv("results/model_results.csv")
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+            return pd.read_csv(os.path.join(base_dir, "results", "model_results.csv"))
         except FileNotFoundError:
             return None
 
