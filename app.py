@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pickle
 import re
+import os
 
 
 # 1. PAGE CONFIGURATION & THEME
@@ -294,13 +295,11 @@ elif page == "Dataset Explorer":
 # PAGE 4 : VISUALIZATIONS (VERSION DYNAMIQUE)
 
 elif page == "Visualizations":
-    st.title("📊 Data Insights & Analytical Charts")
+    st.title("Data Insights & Analytical Charts")
     st.write("Exploratory visualizations highlighting data characteristics, vocabulary trends, and baseline evaluation performance.")
     st.markdown("---")
-    
-    import os
 
-    st.subheader("🔬 1. Model Performance: Confusion Matrix")
+    st.subheader("1. Model Performance: Confusion Matrix")
     st.write(
         "The matrix below adapts dynamically to showcase the true labels versus predictions for your "
         "currently selected model architecture in the sidebar. This allows direct localization of error vectors:"
