@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import pickle
 import re
 import os
+from pathlib import Path
 
 
 # 1. PAGE CONFIGURATION & THEME
@@ -111,15 +112,27 @@ elif page == "Text Analyzer":
 
     @st.cache_resource
     def load_nlp_models():
-        base_dir = os.path.dirname(os.path.abspath(__file__))
-        model_path = os.path.join(base_dir, "models", "final_best", "rakyat_speaks_ml_LogReg_TFIDF_FINAL_BEST.pkl")
-        vec_path   = os.path.join(base_dir, "models", "final_best", "rakyat_speaks_ml_LogReg_TFIDF_FINAL_BEST_vectorizer.pkl")
-        with open(model_path, "rb") as f:
+        base_dir = Path(__file__).resolve().parent
+        model_dir = base_dir / "models" / "final_best"
+        model_path = model_dir / "rakyat_speaks_ml_LogReg_TFIDF_FINAL_BEST.pkl"
+        vec_path = model_dir / "rakyat_speaks_ml_LogReg_TFIDF_FINAL_BEST_vectorizer.pkl"
+
+        missing = [str(p) for p in (model_path, vec_path) if not p.exists()]
+        if missing:
+            available = [p.name for p in model_dir.glob("*.pkl")]
+            raise FileNotFoundError(
+                "Missing expected model files.\n"
+                f"Expected: {model_path.name}, {vec_path.name}\n"
+                f"Available in {model_dir}: {', '.join(sorted(available)) if available else 'none'}"
+            )
+
+        with model_path.open("rb") as f:
             model = pickle.load(f)
-        with open(vec_path, "rb") as f:
+        with vec_path.open("rb") as f:
             vectorizer = pickle.load(f)
         return vectorizer, model
-    try:  
+
+    try:
         tfidf_vectorizer, ml_model = load_nlp_models()
         models_loaded = True
     except Exception as e:
