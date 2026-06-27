@@ -112,27 +112,15 @@ elif page == "Text Analyzer":
 
     @st.cache_resource
     def load_nlp_models():
-        base_dir = Path(__file__).resolve().parent
-        model_dir = base_dir / "models" / "final_best"
-        model_path = model_dir / "rakyat_speaks_ml_LogReg_TFIDF_FINAL_BEST.pkl"
-        vec_path = model_dir / "rakyat_speaks_ml_LogReg_TFIDF_FINAL_BEST_vectorizer.pkl"
-
-        missing = [str(p) for p in (model_path, vec_path) if not p.exists()]
-        if missing:
-            available = [p.name for p in model_dir.glob("*.pkl")]
-            raise FileNotFoundError(
-                "Missing expected model files.\n"
-                f"Expected: {model_path.name}, {vec_path.name}\n"
-                f"Available in {model_dir}: {', '.join(sorted(available)) if available else 'none'}"
-            )
-
-        with model_path.open("rb") as f:
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        model_path = os.path.join(base_dir, "models", "classical_ml", "logistic_regression_tfidf.pkl")
+        vec_path   = os.path.join(base_dir, "models", "classical_ml", "logistic_regression_tfidf_vectorizer.pkl")
+        with open(model_path, "rb") as f:
             model = pickle.load(f)
-        with vec_path.open("rb") as f:
+        with open(vec_path, "rb") as f:
             vectorizer = pickle.load(f)
         return vectorizer, model
-
-    try:
+    try:  
         tfidf_vectorizer, ml_model = load_nlp_models()
         models_loaded = True
     except Exception as e:
@@ -624,8 +612,8 @@ elif page == "Model Info":
 
     dep_col1, dep_col2 = st.columns(2)
     with dep_col1:
-        st.code("models/final_best/rakyat_speaks_ml_LogReg_TFIDF_FINAL_BEST.pkl", language="text")
+        st.code("models/classical_ml/logistic_regression_tfidf.pkl", language="text")
         st.caption("Logistic Regression weights — primary inference model for live predictions.")
     with dep_col2:
-        st.code("models/final_best/rakyat_speaks_ml_LogReg_TFIDF_FINAL_BEST_vectorizer.pkl", language="text")
+        st.code("models/classical_ml/logistic_regression_tfidf_vectorizer.pkl", language="text")
         st.caption("TF-IDF vocabulary mapping — converts raw text to feature vectors.")
