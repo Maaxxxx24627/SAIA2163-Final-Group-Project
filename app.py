@@ -89,7 +89,6 @@ if page == "Home/About":
 
 
 # PAGE 2 : TEXT ANALYZER
-
 elif page == "Text Analyzer":
     st.title("Real-Time Sentiment Classifier")
     st.write("Paste a tweet or comment regarding the Malaysian fuel subsidy rationalization below to infer public sentiment.")
@@ -97,6 +96,7 @@ elif page == "Text Analyzer":
     
     import re
     
+    # 1. Fonction de nettoyage universelle d'Uwais
     def preprocess_text(text):
         text = str(text).lower()
         text = re.sub(r'http\S+|www\S+', '', text)
@@ -109,7 +109,7 @@ elif page == "Text Analyzer":
         text = re.sub(r'\s+', ' ', text).strip()
         return text
 
-
+    # 2. Chargement automatique des fichiers PKL
     try:
         @st.cache_resource
         def load_nlp_models():
@@ -125,19 +125,20 @@ elif page == "Text Analyzer":
         st.error(f"Error loading ML models: {e}")
         models_loaded = False
 
-
+    # 3. Raccourcis d'exemples
     if "input_text" not in st.session_state:
         st.session_state.input_text = ""
 
     st.write("💡 **Quick Examples (Click to test):**")
     col_ex1, col_ex2 = st.columns(2)
     with col_ex1:
-        if st.button("Example A (Negative Expression)"):
+        if st.button("📌 Example A (Negative Expression)"):
             st.session_state.input_text = "Minyak naik lagi lah aduh pening kepala macam ni. Gomen cuts subsidy burdening rakyat!"
     with col_ex2:
-        if st.button("Example B (Neutral Expression)"):
+        if st.button("📌 Example B (Neutral Expression)"):
             st.session_state.input_text = "Targeted subsidy RON95 will start soon. Please bring your IC to register at the station."
 
+    # 4. Zone de saisie
     user_input = st.text_area(
         "Enter text here:", 
         value=st.session_state.input_text,
@@ -145,6 +146,7 @@ elif page == "Text Analyzer":
         height=150
     )
     
+    # 5. Pipeline d'analyse dynamique (S'adapte à TOUS les modèles)
     if st.button("Analyze Sentiment", type="primary"):
         if user_input.strip() == "":
             st.warning("Please enter some text before clicking the analyze button!")
@@ -152,20 +154,20 @@ elif page == "Text Analyzer":
             st.error("Cannot analyze. Model files are missing or corrupted.")
         else:
             with st.spinner("Processing text through NLP pipeline..."):
-
                 cleaned_text = preprocess_text(user_input)
-                
-
                 vectorized_text = tfidf_vectorizer.transform([cleaned_text])
                 
-
-                prediction = ml_model.predict(vectorized_text)[0]
+                # Récupère la prédiction brute directement depuis le modèle
+                raw_prediction = ml_model.predict(vectorized_text)[0]
+                # Formatage propre pour l'affichage (ex: 'negative' -> 'NEGATIVE')
+                prediction_label = str(raw_prediction).upper()
                 
-
+                # Détection automatique des probabilités (Fonctionne si Naive Bayes, LogReg, etc.)
                 has_proba = hasattr(ml_model, "predict_proba")
                 if has_proba:
                     probabilities = ml_model.predict_proba(vectorized_text)[0]
-                    class_idx = list(ml_model.classes_).index(prediction)
+                    # Trouve l'index de la classe prédite pour choper le bon pourcentage
+                    class_idx = list(ml_model.classes_).index(raw_prediction)
                     confidence = probabilities[class_idx] * 100
                 else:
                     confidence = None
@@ -173,31 +175,35 @@ elif page == "Text Analyzer":
             st.success("Analysis Complete!")
             st.markdown("---")
             
-            res_col1, res_col2 = st.columns(2)
+            # 6. Affichage intelligent et dynamique
+            res_col1, res_col2 = res_col1, res_col2 = st.columns(2)
             
             with res_col1:
-                st.subheader("Predicted Sentiment")
-                # Design dynamique selon la réponse de la vraie IA
-                if prediction.lower() == 'positive':
-                    st.markdown("### **POSITIVE**")
+                st.subheader("🎯 Predicted Sentiment")
+                
+                # Changement dynamique de la couleur du badge selon le label retourné par le pkl
+                if "POS" in prediction_label:
+                    st.markdown(f"### **{prediction_label}**")
                     st.caption("The text reflects support, optimism, or approval toward the policy.")
-                elif prediction.lower() == 'negative':
-                    st.markdown("### **NEGATIVE**")
+                elif "NEG" in prediction_label:
+                    st.markdown(f"### **{prediction_label}**")
                     st.caption("The text contains indicators of dissatisfaction, anger, or economic concern.")
                 else:
-                    st.markdown("### **NEUTRAL**")
+                    st.markdown(f"### **{prediction_label}**")
                     st.caption("The text is informative, factual, or lacks explicit emotional polarity.")
                 
             with res_col2:
                 st.subheader("Model Certainty")
-                if confidence:
+                if confidence is not None:
                     st.metric(label="Probability Confidence", value=f"{confidence:.2f}%")
                     st.progress(confidence / 100)
                 else:
-                    st.info("Using Linear SVM Decision Boundary (Confidence score metrics unavailable).")
-                    st.metric(label="Prediction Status", value="Verified")
+                    # Si le nouveau modèle ne supporte pas predict_proba (ex: LinearSVC pur)
+                    st.info("Confidence metrics unavailable for this model architecture.")
+                    st.metric(label="Prediction Status", value="Verified (Discrete Class)")
 
             with st.expander("View Pipeline Processing Steps"):
+                st.write("**Model Type Loaded:**", type(ml_model).__name__)
                 st.write("**Raw Text input:**", user_input)
                 st.write("**Cleaned Text (Tokens):**", f"`{cleaned_text}`")
 
