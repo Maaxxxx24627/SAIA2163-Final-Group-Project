@@ -1,3 +1,5 @@
+from email.mime import base
+
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -112,10 +114,10 @@ elif page == "Text Analyzer":
     try:
         @st.cache_resource
         def load_nlp_models():
-            with open("models/tfidf_vectorizer.pkl", "rb") as f:
-                vectorizer = pickle.load(f)
-            with open("models/best_model.pkl", "rb") as f:
+            with open(f"{base}/rakyat_speaks_ml_LogReg_TFIDF_FINAL_BEST.pkl", "rb") as f:
                 model = pickle.load(f)
+            with open(f"{base}/rakyat_speaks_ml_LogReg_TFIDF_FINAL_BEST_vectorizer.pkl", "rb") as f:
+                vectorizer = pickle.load(f)
             return vectorizer, model
         
         tfidf_vectorizer, ml_model = load_nlp_models()
@@ -311,7 +313,7 @@ elif page == "Visualizations":
     results_df = load_results()
 
     # ── 1. CONFUSION MATRICES ─────────────────────────────────────────────────
-    st.subheader("1. Confusion Matrices — Final Best Models")
+    st.subheader("1. Confusion Matrices - Final Best Models")
     st.write("True labels vs. predictions for our 3 selected production models (NB + TF-IDF, SVM + BoW, LogReg + TF-IDF).")
 
     cm_paths = [
@@ -321,11 +323,11 @@ elif page == "Visualizations":
     cm_found = False
     for path in cm_paths:
         if os.path.exists(path):
-            st.image(path, caption="Confusion Matrix Grid — Final Best Models", use_container_width=True)
+            st.image(path, caption="Confusion Matrix Grid - Final Best Models", use_container_width=True)
             cm_found = True
             break
     if not cm_found:
-        st.warning("confusion_matrices_final.png not found — run the notebook to generate it.")
+        st.warning("confusion_matrices_final.png not found - run the notebook to generate it.")
 
     st.markdown("---")
 
@@ -352,28 +354,37 @@ elif page == "Visualizations":
         st.info("Insight: Class imbalance is the main reason Positive F1 remains low (~0.38) across all models.")
 
     with vis_col2:
-        st.markdown("**Word Cloud — Most Frequent Tokens**")
+        st.markdown("**Word Cloud - Most Frequent Tokens by Class**")
         st.write(
-            "Dominant terms in negative comments center around financial pressure: "
-            "`potong` (cut), `menyusahkan` (burdening), `harga` (price). "
-            "Neutral records focus on procedural keywords."
+            "Dominant terms differ significantly across sentiment classes - "
+            "revealing distinct vocabulary patterns for each group."
         )
-        wc_paths = ["wordcloud.png", "notebooks/wordcloud.png"]
-        wc_found = False
-        for p in wc_paths:
-            if os.path.exists(p):
-                st.image(p, caption="Most Frequent Tokens (Stopwords Filtered)", use_container_width=True)
-                wc_found = True
-                break
-        if not wc_found:
-            st.warning("wordcloud.png not found.")
-        st.caption("Regional stopwords (`la`, `je`, `gomen`) were filtered to extract root semantics.")
-
+        wc_tab1, wc_tab2, wc_tab3 = st.tabs(["Negative", "Neutral", "Positive"])
+        with wc_tab1:
+            wc_paths = ["notebooks/wordcloud_negative.png", "wordcloud_negative.png"]
+            for p in wc_paths:
+                if os.path.exists(p):
+                    st.image(p, use_container_width=True)
+                    break
+        with wc_tab2:
+            wc_paths = ["notebooks/wordcloud_neutral.png", "wordcloud_neutral.png"]
+            for p in wc_paths:
+                if os.path.exists(p):
+                    st.image(p, use_container_width=True)
+                    break
+        with wc_tab3:
+            wc_paths = ["notebooks/wordcloud_positive.png", "wordcloud_positive.png"]
+            for p in wc_paths:
+                if os.path.exists(p):
+                    st.image(p, use_container_width=True)
+                    break
+        st.caption("Regional stopwords filtered to extract root semantics.")
+        
     st.markdown("---")
 
     # ── 3. MODEL COMPARISON ───────────────────────────────────────────────────
     st.subheader("3. Model Performance Comparison")
-    st.write("Accuracy and Kappa score across all evaluated models — final best highlighted.")
+    st.write("Accuracy and Kappa score across all evaluated models - final best highlighted.")
 
     comp_paths = ["model_comparison.png", "notebooks/model_comparison.png"]
     comp_found = False
@@ -412,7 +423,7 @@ elif page == "Visualizations":
 
         ax1.set_xticks(x)
         ax1.set_xticklabels(fallback_models, rotation=15)
-        ax1.set_title('Model Comparison — Final Best Models')
+        ax1.set_title('Model Comparison - Final Best Models')
 
         lines = [bars1, bars2]
         labels = ['Accuracy (%)', "Cohen's Kappa"]
@@ -420,7 +431,7 @@ elif page == "Visualizations":
 
         plt.tight_layout()
         st.pyplot(fig)
-        st.caption("Generated dynamically from results/model_results.csv — add model_comparison.png to use static version.")
+        st.caption("Generated dynamically from results/model_results.csv - add model_comparison.png to use static version.")
 
     st.markdown("---")
 
@@ -436,13 +447,13 @@ elif page == "Visualizations":
             t20_found = True
             break
     if not t20_found:
-        st.warning("top20_words.png not found — Zarif needs to generate this from the dataset.")
+        st.warning("top20_words.png not found - Zarif needs to generate this from the dataset.")
 
     st.markdown("---")
 
     # ── 5. PER-CLASS F1 BREAKDOWN ─────────────────────────────────────────────
     st.subheader("5. Per-Class F1 Score Breakdown")
-    st.write("F1 performance per sentiment class — reveals the impact of class imbalance on the minority Positive class.")
+    st.write("F1 performance per sentiment class - reveals the impact of class imbalance on the minority Positive class.")
 
     f1_paths = ["f1_breakdown.png", "notebooks/f1_breakdown.png"]
     f1_found = False
@@ -475,76 +486,105 @@ elif page == "Visualizations":
         ax2.set_xticklabels(f1_models, rotation=15)
         ax2.set_ylabel('F1 Score')
         ax2.set_ylim(0, 1)
-        ax2.set_title('Per-Class F1 Score — Final Best Models')
+        ax2.set_title('Per-Class F1 Score - Final Best Models')
         ax2.legend()
         plt.tight_layout()
         st.pyplot(fig2)
         st.caption("Positive F1 remains low (~0.38–0.42) due to severe underrepresentation (287 positive vs 5,033 neutral rows).")
-        st.info("Insight: This imbalance is the core argument for testing transformer models — BERT/RoBERTa handle minority classes more robustly through contextual embeddings.")# PAGE 5 : MODEL INFO
+        st.info("Insight: This imbalance is the core argument for testing transformer models - BERT/RoBERTa handle minority classes more robustly through contextual embeddings.")# PAGE 5 : MODEL INFO
 
 
 # PAGE 5 : MODEL INFO
+
 elif page == "Model Info":
     st.title("Model Architecture & Evaluation Breakdown")
     st.write("Detailed comparative look into the hyper-parameters and metrics of our trained pipeline models.")
     st.markdown("---")
-    
+
+    @st.cache_data
+    def load_results_model_info():
+        try:
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+            return pd.read_csv(os.path.join(base_dir, "results", "model_results.csv"))
+        except FileNotFoundError:
+            return None
+
+    results_df = load_results_model_info()
+
     st.subheader("Comparative Testing Performance Grid")
     st.write("Evaluation results gathered over the 402 gold-labeled testing split entries:")
-    
-    metrics_df = pd.DataFrame({
-        'Evaluated Model Algorithm': [
-            'Naive Bayes Classifier', 
-            'Naive Bayes Classifier', 
-            'Logistic Regression Baseline', 
-            'Logistic Regression Baseline'
-        ],
-        'Feature Extraction Method': [
-            'TF-IDF Vectorizer', 
-            'Bag of Words (BoW)', 
-            'TF-IDF Vectorizer', 
-            'Bag of Words (BoW)'
-        ],
-        'Testing Accuracy': ['64.2%', '61.2%', '66.9%', '67.7%'],
-        'Cohen\'s Kappa Score': ['0.373', '0.322', '0.365', '0.354'],
-        'Negative F1-Score': ['0.556', '0.543', '0.571', '0.546'],
-        'Neutral F1-Score': ['0.738', '0.701', '0.754', '0.765'],
-        'Positive F1-Score': ['0.416', '0.378', '0.381', '0.386']
-    })
-    
-    st.dataframe(metrics_df, use_container_width=True)
-    
+
+    if results_df is not None:
+        display_df = results_df.copy()
+        display_df['accuracy'] = (display_df['accuracy'] * 100).round(1).astype(str) + '%'
+        display_df['kappa']    = display_df['kappa'].round(3).astype(str)
+        display_df['neg_f1']   = display_df['neg_f1'].round(3).astype(str)
+        display_df['neu_f1']   = display_df['neu_f1'].round(3).astype(str)
+        display_df['pos_f1']   = display_df['pos_f1'].round(3).astype(str)
+        display_df = display_df.rename(columns={
+            'model':    'Model',
+            'status':   'Status',
+            'accuracy': 'Accuracy',
+            'kappa':    "Cohen's Kappa",
+            'neg_f1':   'Negative F1',
+            'neu_f1':   'Neutral F1',
+            'pos_f1':   'Positive F1'
+        })
+        st.dataframe(display_df, use_container_width=True)
+
+        # Best model dynamique
+        best_row = results_df.loc[results_df['kappa'].idxmax()]
+        best_name = best_row['model']
+        best_acc  = best_row['accuracy'] * 100
+        best_kappa = best_row['kappa']
+    else:
+        st.warning("model_results.csv not found — showing static fallback data.")
+        fallback = pd.DataFrame({
+            'Model': ['Naive Bayes + TF-IDF', 'SVM + BoW', 'Logistic Regression + TF-IDF'],
+            'Status': ['final_best', 'final_best', 'final_best'],
+            'Accuracy': ['64.2%', '68.4%', '66.9%'],
+            "Cohen's Kappa": ['0.373', '0.366', '0.365'],
+            'Negative F1': ['0.556', '0.556', '0.571'],
+            'Neutral F1': ['0.738', '0.772', '0.754'],
+            'Positive F1': ['0.416', '0.384', '0.381'],
+        })
+        st.dataframe(fallback, use_container_width=True)
+        best_name  = "SVM + BoW"
+        best_acc   = 68.4
+        best_kappa = 0.366
+
     st.markdown("---")
-    
+
     col_p1, col_p2 = st.columns(2)
-    
+
     with col_p1:
         st.markdown("**Text Preprocessing Architecture:**")
         st.write("- **Character Normalization:** Lowercasing, removal of URLs, usernames, markdown symbols, and non-ASCII characters.")
-        st.write("- **Token Cleaning:** Regex filtering to strip punctuation while preserving punctuation indicators like `!` and `?` for sentiment extraction.")
+        st.write("- **Token Cleaning:** Regex filtering to strip punctuation while preserving `!` and `?` for sentiment extraction.")
         st.write("- **Length Threshold:** Automatic deletion of text fragments shorter than 3 tokens to minimize dataset noise.")
-        st.write("- **Feature Scope:** Extraction bounds capped at a maximum of 30,000 top n-grams (1,2) with a minimum document frequency (`min_df=2`).")
-        
+        st.write("- **Feature Scope:** Extraction bounds capped at 30,000 top n-grams (1,2) with minimum document frequency (`min_df=2`).")
+
     with col_p2:
         st.markdown("**Best Performer Evaluation:**")
-        st.success("Best Overall Model: **Logistic Regression + BoW** (67.7% Acc)")
+        st.success(f"Best Overall Model: **{best_name}** ({best_acc:.1f}% Acc, Kappa {best_kappa:.3f})")
         st.write(
-            "While **Logistic Regression** achieves the highest raw accuracy, all models face a massive linguistic hurdle "
-            "with the **Positive Class F1-Score (~38%)** due to the extreme dataset imbalance (only 287 positive training rows)."
+            "All models face a linguistic hurdle with the **Positive Class F1 (~0.38–0.42)** "
+            "due to extreme dataset imbalance — only 287 positive training rows vs 5,033 neutral."
         )
         st.info(
-            "*Soutenance Note:* We optimized training by calculating balanced sample weights (`class_weight='balanced'`) "
-            "to prevent the algorithms from completely ignoring minority positive expressions."
+            "Training was optimized using balanced sample weights (`class_weight='balanced'`) "
+            "to prevent algorithms from ignoring minority positive expressions. "
+            "Transformer models (MalayBERT, XLM-R) were subsequently tested to address this imbalance."
         )
 
     st.markdown("---")
     st.subheader("Model Deployment Artifacts")
-    st.write("The current production environment is powered by the static serialization bins generated from Uwais' pipeline:")
-    
+    st.write("Production models serialized from Uwais' pipeline — loaded at runtime by the Text Analyzer:")
+
     dep_col1, dep_col2 = st.columns(2)
     with dep_col1:
-        st.code("models/best_model.pkl", language="text")
-        st.caption("Serialized Python object holding the trained Logistic Regression weights.")
+        st.code("models/final_best/rakyat_speaks_ml_LogReg_TFIDF_FINAL_BEST.pkl", language="text")
+        st.caption("Logistic Regression weights — primary inference model for live predictions.")
     with dep_col2:
-        st.code("models/tfidf_vectorizer.pkl", language="text")
-        st.caption("Vocab mapping array converting live text inputs into predictable numeric coordinates.")
+        st.code("models/final_best/rakyat_speaks_ml_LogReg_TFIDF_FINAL_BEST_vectorizer.pkl", language="text")
+        st.caption("TF-IDF vocabulary mapping — converts raw text to feature vectors.")
