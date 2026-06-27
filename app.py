@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import pickle
+import re
 
 
 # 1. PAGE CONFIGURATION & THEME
@@ -22,8 +24,7 @@ st.sidebar.markdown("---")
 
 page = st.sidebar.radio(
     "Select Page:",
-    ["Home/About", "Text Analy", "Dataset Explorer", "Visualizas", "Model Io"]
-    #["Home/About", "Text Analyzer", "Dataset Explorer", "Visualizations", "Model Info"]
+    ["Home/About", "Text Analyzer", "Dataset Explorer", "Visualizations", "Model Info"]
 )
 
 st.sidebar.markdown("---")
@@ -86,47 +87,119 @@ if page == "Home/About":
         st.metric(label="Documentation & Repo", value="ISBULLAH")
 
 
+
 # PAGE 2 : TEXT ANALYZER
 
 elif page == "Text Analyzer":
-    st.title("Real-Time Sentiment Classifier")
+    st.title("🔮 Real-Time Sentiment Classifier")
     st.write("Paste a tweet or comment regarding the Malaysian fuel subsidy rationalization below to infer public sentiment.")
     st.markdown("---")
     
-    # Text input area
+    import re
+    
+    def preprocess_text(text):
+        text = str(text).lower()
+        text = re.sub(r'http\S+|www\S+', '', text)
+        text = re.sub(r'\[([^\]]+)\]\([^)]+\)', r'\1', text)
+        text = re.sub(r'[*_]{1,2}([^*_]+)[*_]{1,2}', r'\1', text)
+        text = re.sub(r'^>.*$', '', text, flags=re.MULTILINE)
+        text = re.sub(r'&gt;|&amp;|&lt;|&nbsp;', ' ', text)
+        text = re.sub(r'[^\x00-\x7F]+', '', text)
+        text = re.sub(r'[^\w\s!?]', ' ', text)
+        text = re.sub(r'\s+', ' ', text).strip()
+        return text
+
+
+    try:
+        @st.cache_resource
+        def load_nlp_models():
+            with open("models/tfidf_vectorizer.pkl", "rb") as f:
+                vectorizer = pickle.load(f)
+            with open("models/best_model.pkl", "rb") as f:
+                model = pickle.load(f)
+            return vectorizer, model
+        
+        tfidf_vectorizer, ml_model = load_nlp_models()
+        models_loaded = True
+    except Exception as e:
+        st.error(f"⚠️ Error loading ML models: {e}")
+        models_loaded = False
+
+
+    if "input_text" not in st.session_state:
+        st.session_state.input_text = ""
+
+    st.write("💡 **Quick Examples (Click to test):**")
+    col_ex1, col_ex2 = st.columns(2)
+    with col_ex1:
+        if st.button("Example A (Negative Expression)"):
+            st.session_state.input_text = "Minyak naik lagi lah aduh pening kepala macam ni. Gomen cuts subsidy burdening rakyat!"
+    with col_ex2:
+        if st.button("Example B (Neutral Expression)"):
+            st.session_state.input_text = "Targeted subsidy RON95 will start soon. Please bring your IC to register at the station."
+
     user_input = st.text_area(
         "Enter text here:", 
-        placeholder="E.g., Potong subsidy minyak ni betul-betul menyusahkan rakyat marhaen...",
+        value=st.session_state.input_text,
+        placeholder="Type or click an example above...",
         height=150
     )
     
     if st.button("Analyze Sentiment", type="primary"):
         if user_input.strip() == "":
             st.warning("Please enter some text before clicking the analyze button!")
+        elif not models_loaded:
+            st.error("Cannot analyze. Model files are missing or corrupted.")
         else:
-            # PLACEHOLDER NOTIFICATION
-            st.info("Communicating with the NLP backend... (Running in Mock-up Deployment Mode)")
+            with st.spinner("Processing text through NLP pipeline..."):
+
+                cleaned_text = preprocess_text(user_input)
+                
+
+                vectorized_text = tfidf_vectorizer.transform([cleaned_text])
+                
+
+                prediction = ml_model.predict(vectorized_text)[0]
+                
+
+                has_proba = hasattr(ml_model, "predict_proba")
+                if has_proba:
+                    probabilities = ml_model.predict_proba(vectorized_text)[0]
+                    class_idx = list(ml_model.classes_).index(prediction)
+                    confidence = probabilities[class_idx] * 100
+                else:
+                    confidence = None
+
+            st.success("Analysis Complete!")
             st.markdown("---")
-            
-            # --- SIMULATION VISUALS (To be replaced with Uwais's model.predict() output) ---
-            st.success("Prediction Successfully Rendered!")
             
             res_col1, res_col2 = st.columns(2)
+            
             with res_col1:
-                st.subheader("Predicted Class")
-                # Visual styling block for text outcome
-                st.markdown("**Negative / Angry **")
-                st.caption("The model identified indicators of dissatisfaction or socioeconomic concern in the text.")
+                st.subheader("Predicted Sentiment")
+                # Design dynamique selon la réponse de la vraie IA
+                if prediction.lower() == 'positive':
+                    st.markdown("### **POSITIVE**")
+                    st.caption("The text reflects support, optimism, or approval toward the policy.")
+                elif prediction.lower() == 'negative':
+                    st.markdown("### **NEGATIVE**")
+                    st.caption("The text contains indicators of dissatisfaction, anger, or economic concern.")
+                else:
+                    st.markdown("### **NEUTRAL**")
+                    st.caption("The text is informative, factual, or lacks explicit emotional polarity.")
                 
             with res_col2:
-                st.subheader("Confidence Score")
-                st.metric(label="Probability Confidence", value="94.27%")
-                st.progress(0.94)
-            
-            st.markdown("---")
-            st.subheader("Feature Importance & Influential Tokens")
-            st.write("The following highly weighted terms in our vocabulary most heavily shifted the prediction toward this category:")
-            st.info("Keywords Detected: `potong` (cut), `menyusahkan` (burdening), `minyak` (fuel), `rakyat` (citizens)")
+                st.subheader("Model Certainty")
+                if confidence:
+                    st.metric(label="Probability Confidence", value=f"{confidence:.2f}%")
+                    st.progress(confidence / 100)
+                else:
+                    st.info("Using Linear SVM Decision Boundary (Confidence score metrics unavailable).")
+                    st.metric(label="Prediction Status", value="Verified")
+
+            with st.expander("View Pipeline Processing Steps"):
+                st.write("**Raw Text input:**", user_input)
+                st.write("**Cleaned Text (Tokens):**", f"`{cleaned_text}`")
 
 
 # ---- PAGE 3 : DATASET EXPLORER ----
