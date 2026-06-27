@@ -217,3 +217,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+data/malaysia_subreddit_comments.csv
+data/malaysia_subreddit_threads.csv
+data/NLP_Dataset_preparation/labeling_checkpoint.csv
+data/NLP_Dataset_preparation/malaysian_sentiment_on_govpolicies.csv
+backup/
