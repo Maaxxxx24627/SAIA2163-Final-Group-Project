@@ -91,7 +91,7 @@ if page == "Home/About":
 # PAGE 2 : TEXT ANALYZER
 
 elif page == "Text Analyzer":
-    st.title("🔮 Real-Time Sentiment Classifier")
+    st.title("Real-Time Sentiment Classifier")
     st.write("Paste a tweet or comment regarding the Malaysian fuel subsidy rationalization below to infer public sentiment.")
     st.markdown("---")
     
@@ -122,7 +122,7 @@ elif page == "Text Analyzer":
         tfidf_vectorizer, ml_model = load_nlp_models()
         models_loaded = True
     except Exception as e:
-        st.error(f"⚠️ Error loading ML models: {e}")
+        st.error(f"Error loading ML models: {e}")
         models_loaded = False
 
 
