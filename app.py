@@ -111,18 +111,18 @@ elif page == "Text Analyzer":
         text = re.sub(r'\s+', ' ', text).strip()
         return text
 
-    try:
-        @st.cache_resource
-        def load_nlp_models():
-            base_dir = os.path.dirname(os.path.abspath(__file__))
-            model_path = os.path.join(base_dir, "models", "final_best", "rakyat_speaks_ml_LogReg_TFIDF_FINAL_BEST.pkl")
-            vec_path   = os.path.join(base_dir, "models", "final_best", "rakyat_speaks_ml_LogReg_TFIDF_FINAL_BEST_vectorizer.pkl")
-            with open(model_path, "rb") as f:
-                model = pickle.load(f)
-            with open(vec_path, "rb") as f:
-                vectorizer = pickle.load(f)
-            return vectorizer, model
-        
+
+    @st.cache_resource
+    def load_nlp_models():
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        model_path = os.path.join(base_dir, "models", "final_best", "rakyat_speaks_ml_LogReg_TFIDF_FINAL_BEST.pkl")
+        vec_path   = os.path.join(base_dir, "models", "final_best", "rakyat_speaks_ml_LogReg_TFIDF_FINAL_BEST_vectorizer.pkl")
+        with open(model_path, "rb") as f:
+            model = pickle.load(f)
+        with open(vec_path, "rb") as f:
+            vectorizer = pickle.load(f)
+        return vectorizer, model
+    try:  
         tfidf_vectorizer, ml_model = load_nlp_models()
         models_loaded = True
     except Exception as e:
@@ -508,7 +508,20 @@ elif page == "Model Info":
     def load_results_model_info():
         try:
             base_dir = os.path.dirname(os.path.abspath(__file__))
-            return pd.read_csv(os.path.join(base_dir, "results", "model_results.csv"))
+            df = pd.read_csv(os.path.join(base_dir, "results", "model_results.csv"))
+            df.columns = df.columns.str.strip()
+            df = df.rename(columns={
+                'Model':         'model',
+                'Status':        'status',
+                'Accuracy':      'accuracy',
+                "Cohen's Kappa": 'kappa',
+                'Negative F1':   'neg_f1',
+                'Neutral F1':    'neu_f1',
+                'Positive F1':   'pos_f1'
+            })
+            if df['accuracy'].dtype == object:
+                df['accuracy'] = df['accuracy'].str.replace('%', '').astype(float) / 100
+            return df
         except FileNotFoundError:
             return None
 
@@ -519,6 +532,8 @@ elif page == "Model Info":
 
     if results_df is not None:
         display_df = results_df.copy()
+        
+        # accuracy est déjà un float grâce au load_results_model_info()
         display_df['accuracy'] = (display_df['accuracy'] * 100).round(1).astype(str) + '%'
         display_df['kappa']    = display_df['kappa'].round(3).astype(str)
         display_df['neg_f1']   = display_df['neg_f1'].round(3).astype(str)
@@ -535,11 +550,11 @@ elif page == "Model Info":
         })
         st.dataframe(display_df, use_container_width=True)
 
-        # Best model dynamique
-        best_row = results_df.loc[results_df['kappa'].idxmax()]
-        best_name = best_row['model']
-        best_acc  = best_row['accuracy'] * 100
+        best_row   = results_df.loc[results_df['kappa'].idxmax()]
+        best_name  = best_row['model']
+        best_acc   = best_row['accuracy'] * 100
         best_kappa = best_row['kappa']
+
     else:
         st.warning("model_results.csv not found — showing static fallback data.")
         fallback = pd.DataFrame({
