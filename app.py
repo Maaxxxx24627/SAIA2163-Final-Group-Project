@@ -96,7 +96,6 @@ elif page == "Text Analyzer":
     
     import re
     
-    # 1. Fonction de nettoyage universelle d'Uwais
     def preprocess_text(text):
         text = str(text).lower()
         text = re.sub(r'http\S+|www\S+', '', text)
@@ -109,7 +108,6 @@ elif page == "Text Analyzer":
         text = re.sub(r'\s+', ' ', text).strip()
         return text
 
-    # 2. Chargement automatique des fichiers PKL
     try:
         @st.cache_resource
         def load_nlp_models():
@@ -125,11 +123,10 @@ elif page == "Text Analyzer":
         st.error(f"Error loading ML models: {e}")
         models_loaded = False
 
-    # 3. Raccourcis d'exemples
     if "input_text" not in st.session_state:
         st.session_state.input_text = ""
 
-    st.write("💡 **Quick Examples (Click to test):**")
+    st.write("**Quick Examples (Click to test):**")
     col_ex1, col_ex2 = st.columns(2)
     with col_ex1:
         if st.button("Example A (Negative Expression)"):
@@ -138,7 +135,6 @@ elif page == "Text Analyzer":
         if st.button("Example B (Neutral Expression)"):
             st.session_state.input_text = "Targeted subsidy RON95 will start soon. Please bring your IC to register at the station."
 
-    # 4. Zone de saisie
     user_input = st.text_area(
         "Enter text here:", 
         value=st.session_state.input_text,
@@ -146,7 +142,6 @@ elif page == "Text Analyzer":
         height=150
     )
     
-    # 5. Pipeline d'analyse dynamique (S'adapte à TOUS les modèles)
     if st.button("Analyze Sentiment", type="primary"):
         if user_input.strip() == "":
             st.warning("Please enter some text before clicking the analyze button!")
@@ -157,16 +152,13 @@ elif page == "Text Analyzer":
                 cleaned_text = preprocess_text(user_input)
                 vectorized_text = tfidf_vectorizer.transform([cleaned_text])
                 
-                # Récupère la prédiction brute directement depuis le modèle
                 raw_prediction = ml_model.predict(vectorized_text)[0]
-                # Formatage propre pour l'affichage (ex: 'negative' -> 'NEGATIVE')
                 prediction_label = str(raw_prediction).upper()
                 
-                # Détection automatique des probabilités (Fonctionne si Naive Bayes, LogReg, etc.)
+
                 has_proba = hasattr(ml_model, "predict_proba")
                 if has_proba:
                     probabilities = ml_model.predict_proba(vectorized_text)[0]
-                    # Trouve l'index de la classe prédite pour choper le bon pourcentage
                     class_idx = list(ml_model.classes_).index(raw_prediction)
                     confidence = probabilities[class_idx] * 100
                 else:
@@ -175,13 +167,11 @@ elif page == "Text Analyzer":
             st.success("Analysis Complete!")
             st.markdown("---")
             
-            # 6. Affichage intelligent et dynamique
-            res_col1, res_col2 = res_col1, res_col2 = st.columns(2)
+            res_col1, res_col2 = st.columns(2)
             
             with res_col1:
                 st.subheader("Predicted Sentiment")
                 
-                # Changement dynamique de la couleur du badge selon le label retourné par le pkl
                 if "POS" in prediction_label:
                     st.markdown(f"### **{prediction_label}**")
                     st.caption("The text reflects support, optimism, or approval toward the policy.")
@@ -198,7 +188,6 @@ elif page == "Text Analyzer":
                     st.metric(label="Probability Confidence", value=f"{confidence:.2f}%")
                     st.progress(confidence / 100)
                 else:
-                    # Si le nouveau modèle ne supporte pas predict_proba (ex: LinearSVC pur)
                     st.info("Confidence metrics unavailable for this model architecture.")
                     st.metric(label="Prediction Status", value="Verified (Discrete Class)")
 
@@ -208,7 +197,7 @@ elif page == "Text Analyzer":
                 st.write("**Cleaned Text (Tokens):**", f"`{cleaned_text}`")
 
 
-# ---- PAGE 3 : DATASET EXPLORER ----
+# PAGE 3 : DATASET EXPLORER
 elif page == "Dataset Explorer":
     st.title("Dataset Explorer")
     st.write("Explore the curated dataset used to train and evaluate our sentiment analysis models.")
@@ -300,9 +289,9 @@ elif page == "Dataset Explorer":
         })
         st.dataframe(mock_data, use_container_width=True)
 
-# ==============================================================================
+
 # PAGE 4 : VISUALIZATIONS
-# ==============================================================================
+
 elif page == "Visualizations":
     st.title("Data Insights & Analytical Charts")
     st.write("Exploratory visualizations highlighting data characteristics, vocabulary trends, and baseline evaluation performance.")
@@ -364,7 +353,6 @@ elif page == "Model Info":
     st.subheader("Comparative Testing Performance Grid")
     st.write("Evaluation results gathered over the 402 gold-labeled testing split entries:")
     
-    # Intégration des VRAIS résultats issus de votre console !
     metrics_df = pd.DataFrame({
         'Evaluated Model Algorithm': [
             'Naive Bayes Classifier', 
@@ -385,7 +373,6 @@ elif page == "Model Info":
         'Positive F1-Score': ['0.416', '0.378', '0.381', '0.386']
     })
     
-    # Affichage du tableau interactif propre
     st.dataframe(metrics_df, use_container_width=True)
     
     st.markdown("---")
