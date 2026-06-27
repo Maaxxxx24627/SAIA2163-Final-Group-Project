@@ -305,7 +305,7 @@ elif page == "Visualizations":
         "currently loaded model architecture."
     )
 
-    cm_filename = "confusion_matrices.png"
+    cm_filename = "confusion_matrices_final.png"
     cm_caption = "Comprehensive Confusion Matrix Breakdown"
     
     try:
