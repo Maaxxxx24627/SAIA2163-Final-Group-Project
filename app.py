@@ -57,7 +57,7 @@ if page == "Home/About":
             "and emotional polarities from social media discussions regarding these targeted subsidy cuts."
         )
         st.write(
-            "By implementing Machine Learning classification baselines, this tool provides real-time "
+            "By implementing Machine Learning and Transformer-based models, this tool provides real-time "
             "insights into whether the general public reacts with support, concern, or opposition to "
             "the ongoing financial policies."
         )
@@ -67,6 +67,7 @@ if page == "Home/About":
         st.markdown("- **Dataset Explorer Dashboard:** Transparent inspection of the trained dataset distribution.")
         st.markdown("- **Advanced Visualizations:** Insightful analytical graphs including word clouds and confusion matrices.")
         st.markdown("- **Model Evaluation:** Detailed performance metrics comparison between optimized algorithms.")
+        st.markdown("- **Transformer Models:** XLM-R and MalayBERT fine-tuned on Malaysian social media text for advanced sentiment detection.")
 
     with col_guide:
         st.subheader("Application Guide")
