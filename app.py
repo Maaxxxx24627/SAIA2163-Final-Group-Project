@@ -298,46 +298,50 @@ elif page == "Visualizations":
     st.title("Data Insights & Analytical Charts")
     st.write("Exploratory visualizations highlighting data characteristics, vocabulary trends, and baseline evaluation performance.")
     st.markdown("---")
+    
+    import os
+    import pickle
 
     st.subheader("1. Model Performance: Confusion Matrix")
     st.write(
         "The matrix below adapts dynamically to showcase the true labels versus predictions for your "
-        "currently selected model architecture in the sidebar. This allows direct localization of error vectors:"
+        "currently loaded model architecture."
     )
 
+    # Détection automatique du modèle chargé
+    cm_filename = "confusion_matrices.png"
+    cm_caption = "Comprehensive Confusion Matrix Breakdown"
     
-    if model_choice == "Logistic Regression Baseline" and vectorizer_choice == "Bag of Words (BoW)":
-        cm_filename = "cm_logistic_bow.png"
-        cm_caption = "Confusion Matrix: Logistic Regression + Bag of Words"
-    elif model_choice == "Logistic Regression Baseline" and vectorizer_choice == "TF-IDF Vectorizer":
-        cm_filename = "cm_logistic_tfidf.png"
-        cm_caption = "Confusion Matrix: Logistic Regression + TF-IDF"
-    elif model_choice == "Naive Bayes Classifier" and vectorizer_choice == "Bag of Words (BoW)":
-        cm_filename = "cm_nb_bow.png"
-        cm_caption = "Confusion Matrix: Naive Bayes + Bag of Words"
-    else:
-        cm_filename = "cm_nb_tfidf.png"
-        cm_caption = "Confusion Matrix: Naive Bayes + TF-IDF"
+    try:
+        # On inspecte discrètement le modèle pour savoir qui il est
+        with open("models/best_model.pkl", "rb") as f:
+            check_model = pickle.load(f)
+            model_name = type(check_model).__name__.lower()
+            
+        # On adapte l'image selon la nature de la structure détectée
+        if "logistic" in model_name:
+            cm_filename = "cm_logistic_tfidf.png"
+            cm_caption = "Dynamic Visualization: Logistic Regression + TF-IDF Confusion Matrix"
+        elif "nb" in model_name or "naive" in model_name or "bayes" in model_name:
+            cm_filename = "cm_nb_tfidf.png"
+            cm_caption = "Dynamic Visualization: Naive Bayes + TF-IDF Confusion Matrix"
+    except Exception:
+        # En cas d'absence du fichier modèle lors des tests locaux
+        pass
 
-    cm_possible_paths = [cm_filename, f"notebooks/{cm_filename}", f"models/{cm_filename}"]
-    cm_image_found = False
+    # Logique d'affichage de la matrice
+    cm_paths = [cm_filename, f"notebooks/{cm_filename}", "confusion_matrices.png", "notebooks/confusion_matrices.png"]
+    cm_found = False
 
-    for path in cm_possible_paths:
+    for path in cm_paths:
         if os.path.exists(path):
             st.image(path, caption=cm_caption, use_container_width=True)
-            cm_image_found = True
+            cm_found = True
             break
 
-    if not cm_image_found:
-        st.info(f"💡 *Dynamic Mode Note:* Looking for single matrix file `{cm_filename}`.")
-        
-        global_path = "confusion_matrices.png"
-        if os.path.exists(global_path) or os.path.exists(f"notebooks/{global_path}"):
-            actual_path = global_path if os.path.exists(global_path) else f"notebooks/{global_path}"
-            st.image(actual_path, caption="Static view (All models combined)", use_container_width=True)
-        else:
-            st.warning("**No confusion matrix image found.**")
-            st.image("https://via.placeholder.com/1000x500.png?text=Waiting+for+Zarif+to+push+individual+matrix+images", use_container_width=True)
+    if not cm_found:
+        st.warning("Confusion matrix chart not found yet.")
+        st.image("https://via.placeholder.com/1000x500.png?text=Waiting+for+Zarif+Confusion+Matrices", use_container_width=True)
 
     st.markdown("---")
     
@@ -363,7 +367,7 @@ elif page == "Visualizations":
         if not dist_found:
             st.image("https://via.placeholder.com/500x350.png?text=Placeholder:+Distribution+Chart", use_container_width=True)
             
-        st.info("*Insight for presentation:* Class imbalance naturally lowers the global Positive F1-score to ~0.38 across all models.")
+        st.info("Insight for presentation: Class imbalance naturally lowers the global Positive F1-score to ~0.38 across all models.")
         
     with vis_col2:
         st.markdown("**Word Cloud & Vocabulary Weighting**")
@@ -383,6 +387,8 @@ elif page == "Visualizations":
             st.image("https://via.placeholder.com/500x350.png?text=Placeholder:+Word+Cloud+Image", use_container_width=True)
             
         st.caption("Text pre-processing accurately filtered out regional stop-words (`la`, `je`, `gomen`) to extract root semantics.")
+
+
 # PAGE 5 : MODEL INFO
 
 elif page == "Model Info":
