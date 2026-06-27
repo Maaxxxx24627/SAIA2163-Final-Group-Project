@@ -290,7 +290,7 @@ elif page == "Dataset Explorer":
         st.dataframe(mock_data, use_container_width=True)
 
 
-# PAGE 4 : VISUALIZATIONS
+# PAGE 4 : VISUALIZATIONS    waiting zarif plots
 
 elif page == "Visualizations":
     st.title("Data Insights & Analytical Charts")
