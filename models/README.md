@@ -41,6 +41,40 @@ to the differently distributed test set.
 Do not use these models in the Streamlit application or for any final reporting
 of model performance. They exist only to document the tuning experiment.
 
+
+## transformers/
+
+This folder contains transformer-based sentiment classification models, in
+addition to the classical ML models above.
+
+- bestfinedtuned_trans_xmlr/
+  XLM-RoBERTa (xlm-roberta-base), fine-tuned on the training dataset for 6 epochs.
+  This is the best-performing model in the entire project across all approaches
+  (classical and transformer). Accuracy 68.9 percent, Cohen's Kappa 0.390.
+  Load with AutoModelForSequenceClassification.from_pretrained() and
+  AutoTokenizer.from_pretrained(), both pointed at this folder. Labels are
+  0 equals negative, 1 equals neutral, 2 equals positive.
+
+- xlmr_finetuned_checkpoints/
+  Leftover training checkpoint files from the Hugging Face Trainer. Not needed
+  for inference or deployment. Safe to delete.
+
+A hyperparameter sweep was conducted on training epochs (3, 6, 6.5, 7, and 9
+epochs). Accuracy and Kappa peaked sharply at 6 epochs and declined at every
+epoch count tested beyond that, indicating overfitting past this point. All
+five results are recorded in results/model_results.csv for reference.
+
+## Zero-shot transformer
+
+A zero-shot baseline was also evaluated using cardiffnlp/twitter-xlm-roberta-base-sentiment,
+a model pretrained for multilingual social media sentiment with no fine-tuning
+on this project's data. It requires no local model files and is loaded directly
+from the Hugging Face Hub at runtime using the transformers pipeline function.
+It scored 48.3 percent accuracy and Cohen's Kappa of 0.169 on the gold test set,
+substantially below the fine-tuned model, demonstrating the value of domain-specific
+fine-tuning over generic pretrained sentiment models for this task.
+
+
 ## Full results
 
 See results/model_results.csv for the complete comparison table across all eight
