@@ -292,63 +292,53 @@ elif page == "Dataset Explorer":
 
 
 
-# PAGE 4 : VISUALIZATIONS (VERSION DYNAMIQUE)
+# PAGE 4 : VISUALIZATIONS
 
 elif page == "Visualizations":
     st.title("Data Insights & Analytical Charts")
     st.write("Exploratory visualizations highlighting data characteristics, vocabulary trends, and baseline evaluation performance.")
     st.markdown("---")
-    
-    st.subheader("1. Model Performance: Confusion Matrix")
-    st.write(
-        "The matrix below adapts dynamically to showcase the true labels versus predictions for your "
-        "currently loaded model architecture."
-    )
 
-    cm_filename = "confusion_matrices_final.png"
-    cm_caption = "Comprehensive Confusion Matrix Breakdown"
-    
-    try:
-        with open("models/best_model.pkl", "rb") as f:
-            check_model = pickle.load(f)
-            model_name = type(check_model).__name__.lower()
-            
-        if "logistic" in model_name:
-            cm_filename = "cm_logistic_tfidf.png"
-            cm_caption = "Dynamic Visualization: Logistic Regression + TF-IDF Confusion Matrix"
-        elif "nb" in model_name or "naive" in model_name or "bayes" in model_name:
-            cm_filename = "cm_nb_tfidf.png"
-            cm_caption = "Dynamic Visualization: Naive Bayes + TF-IDF Confusion Matrix"
-    except Exception:
-        pass
+    # ── Chargement des résultats depuis le CSV de Uwais ──────────────────────
+    @st.cache_data
+    def load_results():
+        try:
+            return pd.read_csv("results/model_results.csv")
+        except FileNotFoundError:
+            return None
 
-    cm_paths = [cm_filename, f"notebooks/{cm_filename}", "confusion_matrices.png", "notebooks/confusion_matrices.png"]
+    results_df = load_results()
+
+    # ── 1. CONFUSION MATRICES ─────────────────────────────────────────────────
+    st.subheader("1. Confusion Matrices — Final Best Models")
+    st.write("True labels vs. predictions for our 3 selected production models (NB + TF-IDF, SVM + BoW, LogReg + TF-IDF).")
+
+    cm_paths = [
+        "notebooks/confusion_matrices_final.png",
+        "confusion_matrices_final.png",
+    ]
     cm_found = False
-
     for path in cm_paths:
         if os.path.exists(path):
-            st.image(path, caption=cm_caption, use_container_width=True)
+            st.image(path, caption="Confusion Matrix Grid — Final Best Models", use_container_width=True)
             cm_found = True
             break
-
     if not cm_found:
-        st.warning("Confusion matrix chart not found yet.")
-        st.image("https://via.placeholder.com/1000x500.png?text=Waiting+for+Confusion+Matrices", use_container_width=True)
+        st.warning("confusion_matrices_final.png not found — run the notebook to generate it.")
 
     st.markdown("---")
-    
-    st.subheader("2. Corpus Characteristics & Class Distributions")
-    
+
+    # ── 2. CLASS DISTRIBUTION + WORD CLOUD ───────────────────────────────────
+    st.subheader("2. Corpus Characteristics")
+
     vis_col1, vis_col2 = st.columns(2)
-    
+
     with vis_col1:
         st.markdown("**Sentiment Class Distribution**")
         st.write(
-            "Our curated dataset (~7,383 rows) exhibits a heavy natural class skew: "
-            "Neutral/Informative discussions represent the vast majority, while highly polarized positive feedback "
-            "remains a minority class (287 rows)."
+            "The dataset (~7,383 rows) exhibits a heavy natural class skew: "
+            "Neutral discussions dominate, while positive sentiment is a minority class (287 rows)."
         )
-        
         dist_paths = ["distribution.png", "notebooks/distribution.png"]
         dist_found = False
         for p in dist_paths:
@@ -357,63 +347,71 @@ elif page == "Visualizations":
                 dist_found = True
                 break
         if not dist_found:
-            st.image("https://via.placeholder.com/500x350.png?text=Placeholder:+Distribution+Chart", use_container_width=True)
-            
-        st.info("Insight: Class imbalance naturally lowers the global Positive F1-score to ~0.38 across all models.")
-        
+            st.warning("distribution.png not found.")
+        st.info("Insight: Class imbalance is the main reason Positive F1 remains low (~0.38) across all models.")
+
     with vis_col2:
-        st.markdown("**Word Cloud & Vocabulary Weighting**")
+        st.markdown("**Word Cloud — Most Frequent Tokens**")
         st.write(
-            "Prominent lexical tokens detected in complaints heavily center around financial pressure terms "
-            "like `potong` (cut), `menyusahkan` (burdening), and `harga` (price). Factual records focus on structural keywords."
+            "Dominant terms in negative comments center around financial pressure: "
+            "`potong` (cut), `menyusahkan` (burdening), `harga` (price). "
+            "Neutral records focus on procedural keywords."
         )
-        
         wc_paths = ["wordcloud.png", "notebooks/wordcloud.png"]
         wc_found = False
         for p in wc_paths:
             if os.path.exists(p):
-                st.image(p, caption="Most Frequent Tokens (Stop-words Filtered)", use_container_width=True)
+                st.image(p, caption="Most Frequent Tokens (Stopwords Filtered)", use_container_width=True)
                 wc_found = True
                 break
         if not wc_found:
-            st.image("https://via.placeholder.com/500x350.png?text=Placeholder:+Word+Cloud+Image", use_container_width=True)
-            
-        st.caption("Text pre-processing accurately filtered out regional stop-words (`la`, `je`, `gomen`) to extract root semantics.")
+            st.warning("wordcloud.png not found.")
+        st.caption("Regional stopwords (`la`, `je`, `gomen`) were filtered to extract root semantics.")
 
     st.markdown("---")
 
+    # ── 3. MODEL COMPARISON ───────────────────────────────────────────────────
     st.subheader("3. Model Performance Comparison")
-    st.write("Accuracy and Kappa score comparison across all trained models.")
+    st.write("Accuracy and Kappa score across all evaluated models — final best highlighted.")
 
-    model_comp_paths = ["model_comparison.png", "notebooks/model_comparison.png"]
-    mc_found = False
-    for p in model_comp_paths:
+    comp_paths = ["model_comparison.png", "notebooks/model_comparison.png"]
+    comp_found = False
+    for p in comp_paths:
         if os.path.exists(p):
             st.image(p, caption="Model Accuracy & Kappa Comparison", use_container_width=True)
-            mc_found = True
+            comp_found = True
             break
-    if not mc_found:
+
+    if not comp_found:
+        if results_df is not None:
+            final = results_df[results_df['status'] == 'final_best'].copy()
+            fallback_models = final['model'].tolist()
+            fallback_acc    = (final['accuracy'] * 100).tolist()
+            fallback_kappa  = final['kappa'].tolist()
+        else:
+            fallback_models = ['NB + TF-IDF', 'SVM + BoW', 'LR + TF-IDF']
+            fallback_acc    = [64.2, 65.4, 66.9]
+            fallback_kappa  = [0.373, 0.358, 0.365]
+
         fig, ax = plt.subplots(figsize=(10, 5))
-        models = ['NB + TF-IDF', 'NB + BoW', 'LR + TF-IDF', 'LR + BoW']
-        accuracies = [64.2, 61.2, 66.9, 67.7]
-        kappas = [0.373, 0.322, 0.365, 0.354]
-        x = np.arange(len(models))
+        x = np.arange(len(fallback_models))
         width = 0.35
-        ax.bar(x - width/2, accuracies, width, label='Accuracy (%)', color='steelblue')
-        ax.bar(x + width/2, [k * 100 for k in kappas], width, label='Kappa × 100', color='coral')
+        ax.bar(x - width / 2, fallback_acc,              width, label='Accuracy (%)',  color='steelblue')
+        ax.bar(x + width / 2, [k * 100 for k in fallback_kappa], width, label='Kappa × 100', color='coral')
         ax.set_xticks(x)
-        ax.set_xticklabels(models, rotation=15)
+        ax.set_xticklabels(fallback_models, rotation=15)
         ax.set_ylabel('Score')
-        ax.set_title('Model Comparison — Classical ML Baselines')
+        ax.set_title('Model Comparison — Final Best Models')
         ax.legend()
         plt.tight_layout()
         st.pyplot(fig)
-        st.caption("Generated dynamically from hardcoded metrics — replace with model_comparison.png for static version.")
+        st.caption("Generated dynamically from results/model_results.csv — add model_comparison.png to use static version.")
 
     st.markdown("---")
 
+    # ── 4. TOP 20 MOST COMMON WORDS ───────────────────────────────────────────
     st.subheader("4. Top 20 Most Common Words")
-    st.write("Most frequent tokens in the corpus after stopword removal and preprocessing.")
+    st.write("Most frequent tokens in the full corpus after stopword removal and preprocessing.")
 
     top20_paths = ["top20_words.png", "notebooks/top20_words.png"]
     t20_found = False
@@ -423,13 +421,13 @@ elif page == "Visualizations":
             t20_found = True
             break
     if not t20_found:
-        st.warning("top20_words.png not found — needs to be generated from the dataset.")
-        st.image("https://via.placeholder.com/800x400.png?text=Placeholder:+Top+20+Words", use_container_width=True)
+        st.warning("top20_words.png not found — Zarif needs to generate this from the dataset.")
 
     st.markdown("---")
 
+    # ── 5. PER-CLASS F1 BREAKDOWN ─────────────────────────────────────────────
     st.subheader("5. Per-Class F1 Score Breakdown")
-    st.write("Detailed F1 performance per sentiment class across all models — highlights the impact of class imbalance on minority classes.")
+    st.write("F1 performance per sentiment class — reveals the impact of class imbalance on the minority Positive class.")
 
     f1_paths = ["f1_breakdown.png", "notebooks/f1_breakdown.png"]
     f1_found = False
@@ -438,29 +436,39 @@ elif page == "Visualizations":
             st.image(p, caption="Per-Class F1 Score by Model", use_container_width=True)
             f1_found = True
             break
+
     if not f1_found:
+        if results_df is not None:
+            final = results_df[results_df['status'] == 'final_best'].copy()
+            f1_models  = final['model'].tolist()
+            f1_neg     = final['neg_f1'].tolist()
+            f1_neu     = final['neu_f1'].tolist()
+            f1_pos     = final['pos_f1'].tolist()
+        else:
+            f1_models = ['NB + TF-IDF', 'SVM + BoW', 'LR + TF-IDF']
+            f1_neg    = [0.556, 0.560, 0.571]
+            f1_neu    = [0.738, 0.745, 0.754]
+            f1_pos    = [0.416, 0.400, 0.381]
+
         fig2, ax2 = plt.subplots(figsize=(11, 5))
-        models = ['NB + TF-IDF', 'NB + BoW', 'LR + TF-IDF', 'LR + BoW']
-        neg_f1 = [0.556, 0.543, 0.571, 0.546]
-        neu_f1 = [0.738, 0.701, 0.754, 0.765]
-        pos_f1 = [0.416, 0.378, 0.381, 0.386]
-        x = np.arange(len(models))
+        x = np.arange(len(f1_models))
         width = 0.25
-        ax2.bar(x - width, neg_f1, width, label='Negative F1', color='#e74c3c')
-        ax2.bar(x,         neu_f1, width, label='Neutral F1',  color='#3498db')
-        ax2.bar(x + width, pos_f1, width, label='Positive F1', color='#2ecc71')
+        ax2.bar(x - width, f1_neg, width, label='Negative F1', color='#e74c3c')
+        ax2.bar(x,         f1_neu, width, label='Neutral F1',  color='#3498db')
+        ax2.bar(x + width, f1_pos, width, label='Positive F1', color='#2ecc71')
         ax2.set_xticks(x)
-        ax2.set_xticklabels(models, rotation=15)
+        ax2.set_xticklabels(f1_models, rotation=15)
         ax2.set_ylabel('F1 Score')
         ax2.set_ylim(0, 1)
-        ax2.set_title('Per-Class F1 Score Breakdown')
+        ax2.set_title('Per-Class F1 Score — Final Best Models')
         ax2.legend()
         plt.tight_layout()
         st.pyplot(fig2)
-        st.caption("Positive class F1 remains low (~0.38–0.42) due to severe underrepresentation in training data (287 rows vs 5,033 neutral).")
-        st.info("Insight: This chart is the key argument for why transformer models (BERT/RoBERTa) will be tested — they handle class imbalance more robustly through contextual embeddings.")
-# PAGE 5 : MODEL INFO
+        st.caption("Positive F1 remains low (~0.38–0.42) due to severe underrepresentation (287 positive vs 5,033 neutral rows).")
+        st.info("Insight: This imbalance is the core argument for testing transformer models — BERT/RoBERTa handle minority classes more robustly through contextual embeddings.")# PAGE 5 : MODEL INFO
 
+
+# PAGE 5 : MODEL INFO
 elif page == "Model Info":
     st.title("Model Architecture & Evaluation Breakdown")
     st.write("Detailed comparative look into the hyper-parameters and metrics of our trained pipeline models.")
