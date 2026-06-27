@@ -37,8 +37,6 @@ st.sidebar.caption("June 2026")
 
 # 3. PAGE CONTENT CONTEXTS
 
-
-
 # PAGE 1 : HOME / ABOUT
 
 if page == "Home/About":
