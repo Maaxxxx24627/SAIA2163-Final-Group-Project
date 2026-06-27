@@ -305,17 +305,14 @@ elif page == "Visualizations":
         "currently loaded model architecture."
     )
 
-    # Détection automatique du modèle chargé
     cm_filename = "confusion_matrices.png"
     cm_caption = "Comprehensive Confusion Matrix Breakdown"
     
     try:
-        # On inspecte discrètement le modèle pour savoir qui il est
         with open("models/best_model.pkl", "rb") as f:
             check_model = pickle.load(f)
             model_name = type(check_model).__name__.lower()
             
-        # On adapte l'image selon la nature de la structure détectée
         if "logistic" in model_name:
             cm_filename = "cm_logistic_tfidf.png"
             cm_caption = "Dynamic Visualization: Logistic Regression + TF-IDF Confusion Matrix"
@@ -323,10 +320,8 @@ elif page == "Visualizations":
             cm_filename = "cm_nb_tfidf.png"
             cm_caption = "Dynamic Visualization: Naive Bayes + TF-IDF Confusion Matrix"
     except Exception:
-        # En cas d'absence du fichier modèle lors des tests locaux
         pass
 
-    # Logique d'affichage de la matrice
     cm_paths = [cm_filename, f"notebooks/{cm_filename}", "confusion_matrices.png", "notebooks/confusion_matrices.png"]
     cm_found = False
 
@@ -338,7 +333,7 @@ elif page == "Visualizations":
 
     if not cm_found:
         st.warning("Confusion matrix chart not found yet.")
-        st.image("https://via.placeholder.com/1000x500.png?text=Waiting+for+Zarif+Confusion+Matrices", use_container_width=True)
+        st.image("https://via.placeholder.com/1000x500.png?text=Waiting+for+Confusion+Matrices", use_container_width=True)
 
     st.markdown("---")
     
@@ -364,7 +359,7 @@ elif page == "Visualizations":
         if not dist_found:
             st.image("https://via.placeholder.com/500x350.png?text=Placeholder:+Distribution+Chart", use_container_width=True)
             
-        st.info("Insight for presentation: Class imbalance naturally lowers the global Positive F1-score to ~0.38 across all models.")
+        st.info("Insight: Class imbalance naturally lowers the global Positive F1-score to ~0.38 across all models.")
         
     with vis_col2:
         st.markdown("**Word Cloud & Vocabulary Weighting**")
@@ -385,7 +380,85 @@ elif page == "Visualizations":
             
         st.caption("Text pre-processing accurately filtered out regional stop-words (`la`, `je`, `gomen`) to extract root semantics.")
 
+    st.markdown("---")
 
+    st.subheader("3. Model Performance Comparison")
+    st.write("Accuracy and Kappa score comparison across all trained models.")
+
+    model_comp_paths = ["model_comparison.png", "notebooks/model_comparison.png"]
+    mc_found = False
+    for p in model_comp_paths:
+        if os.path.exists(p):
+            st.image(p, caption="Model Accuracy & Kappa Comparison", use_container_width=True)
+            mc_found = True
+            break
+    if not mc_found:
+        fig, ax = plt.subplots(figsize=(10, 5))
+        models = ['NB + TF-IDF', 'NB + BoW', 'LR + TF-IDF', 'LR + BoW']
+        accuracies = [64.2, 61.2, 66.9, 67.7]
+        kappas = [0.373, 0.322, 0.365, 0.354]
+        x = np.arange(len(models))
+        width = 0.35
+        ax.bar(x - width/2, accuracies, width, label='Accuracy (%)', color='steelblue')
+        ax.bar(x + width/2, [k * 100 for k in kappas], width, label='Kappa × 100', color='coral')
+        ax.set_xticks(x)
+        ax.set_xticklabels(models, rotation=15)
+        ax.set_ylabel('Score')
+        ax.set_title('Model Comparison — Classical ML Baselines')
+        ax.legend()
+        plt.tight_layout()
+        st.pyplot(fig)
+        st.caption("Generated dynamically from hardcoded metrics — replace with model_comparison.png for static version.")
+
+    st.markdown("---")
+
+    st.subheader("4. Top 20 Most Common Words")
+    st.write("Most frequent tokens in the corpus after stopword removal and preprocessing.")
+
+    top20_paths = ["top20_words.png", "notebooks/top20_words.png"]
+    t20_found = False
+    for p in top20_paths:
+        if os.path.exists(p):
+            st.image(p, caption="Top 20 Words by Frequency", use_container_width=True)
+            t20_found = True
+            break
+    if not t20_found:
+        st.warning("top20_words.png not found — needs to be generated from the dataset.")
+        st.image("https://via.placeholder.com/800x400.png?text=Placeholder:+Top+20+Words", use_container_width=True)
+
+    st.markdown("---")
+
+    st.subheader("5. Per-Class F1 Score Breakdown")
+    st.write("Detailed F1 performance per sentiment class across all models — highlights the impact of class imbalance on minority classes.")
+
+    f1_paths = ["f1_breakdown.png", "notebooks/f1_breakdown.png"]
+    f1_found = False
+    for p in f1_paths:
+        if os.path.exists(p):
+            st.image(p, caption="Per-Class F1 Score by Model", use_container_width=True)
+            f1_found = True
+            break
+    if not f1_found:
+        fig2, ax2 = plt.subplots(figsize=(11, 5))
+        models = ['NB + TF-IDF', 'NB + BoW', 'LR + TF-IDF', 'LR + BoW']
+        neg_f1 = [0.556, 0.543, 0.571, 0.546]
+        neu_f1 = [0.738, 0.701, 0.754, 0.765]
+        pos_f1 = [0.416, 0.378, 0.381, 0.386]
+        x = np.arange(len(models))
+        width = 0.25
+        ax2.bar(x - width, neg_f1, width, label='Negative F1', color='#e74c3c')
+        ax2.bar(x,         neu_f1, width, label='Neutral F1',  color='#3498db')
+        ax2.bar(x + width, pos_f1, width, label='Positive F1', color='#2ecc71')
+        ax2.set_xticks(x)
+        ax2.set_xticklabels(models, rotation=15)
+        ax2.set_ylabel('F1 Score')
+        ax2.set_ylim(0, 1)
+        ax2.set_title('Per-Class F1 Score Breakdown')
+        ax2.legend()
+        plt.tight_layout()
+        st.pyplot(fig2)
+        st.caption("Positive class F1 remains low (~0.38–0.42) due to severe underrepresentation in training data (287 rows vs 5,033 neutral).")
+        st.info("Insight: This chart is the key argument for why transformer models (BERT/RoBERTa) will be tested — they handle class imbalance more robustly through contextual embeddings.")
 # PAGE 5 : MODEL INFO
 
 elif page == "Model Info":
