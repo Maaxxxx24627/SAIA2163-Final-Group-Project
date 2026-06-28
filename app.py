@@ -113,8 +113,8 @@ elif page == "Text Analyzer":
     @st.cache_resource
     def load_nlp_models():
         base_dir = os.path.dirname(os.path.abspath(__file__))
-        model_path = os.path.join(base_dir, "models", "classical_ml", "logistic_regression_tfidf.pkl")
-        vec_path   = os.path.join(base_dir, "models", "classical_ml", "logistic_regression_tfidf_vectorizer.pkl")
+        model_path = os.path.join(base_dir, "models", "final_best", "rakyat_speaks_ml_LogReg_TFIDF_FINAL_BEST.pkl")
+        vec_path   = os.path.join(base_dir, "models", "final_best", "rakyat_speaks_ml_LogReg_TFIDF_FINAL_BEST_vectorizer.pkl")
         with open(model_path, "rb") as f:
             model = pickle.load(f)
         with open(vec_path, "rb") as f:
@@ -612,8 +612,8 @@ elif page == "Model Info":
 
     dep_col1, dep_col2 = st.columns(2)
     with dep_col1:
-        st.code("models/classical_ml/logistic_regression_tfidf.pkl", language="text")
+        st.code("models/final_best/rakyat_speaks_ml_LogReg_TFIDF_FINAL_BEST.pkl", language="text")
         st.caption("Logistic Regression weights — primary inference model for live predictions.")
     with dep_col2:
-        st.code("models/classical_ml/logistic_regression_tfidf_vectorizer.pkl", language="text")
+        st.code("models/final_best/rakyat_speaks_ml_LogReg_TFIDF_FINAL_BEST_vectorizer.pkl", language="text")
         st.caption("TF-IDF vocabulary mapping — converts raw text to feature vectors.")
