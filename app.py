@@ -11,7 +11,7 @@ from pathlib import Path
 # 1. PAGE CONFIGURATION & THEME
 
 st.set_page_config(
-    page_title="MY Fuel Subsidy Sentiment Analyzer",
+    page_title="Rakyat Speaks",
     page_icon="🇲🇾",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -39,8 +39,8 @@ st.sidebar.caption("June 2026")
 # PAGE 1 : HOME / ABOUT
 
 if page == "Home/About":
-    st.title("Malaysian Fuel Subsidy Sentiment Analyzer")
-    st.markdown("Analyzing Public Response to Socioeconomic Policy Shifts")
+    st.title("Rakyat Speaks")
+    st.markdown("A Sentiment Analysis System for Malaysian Government Policy Discourse")
     st.markdown("---")
     
     col_intro, col_guide = st.columns([2, 1])
